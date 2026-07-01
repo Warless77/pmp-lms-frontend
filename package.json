@@ -2,10 +2,10 @@
   "name": "pmp-lms-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "Premium AI‑powered PMP LMS front‑end",
+  "description": "Premium AI-powered PMP LMS frontend",
   "scripts": {
     "start": "webpack serve --config webpack.config.js",
-    "build": "webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.js && node scripts/copy-index.js"
   },
   "dependencies": {
     "react": "^18.2.0",

@@ -2,8 +2,8 @@ const fs = require("fs");
 const path = require("path");
 
 const publicIndex = path.join(__dirname, "..", "public", "index.html");
-const distIndex = path.join(__dirname, "..", "dist", "index.html");
 const distDir = path.join(__dirname, "..", "dist");
+const distIndex = path.join(distDir, "index.html");
 
 if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir, { recursive: true });
