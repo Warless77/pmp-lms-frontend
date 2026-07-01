@@ -1,0 +1,1 @@
+Trigger after Vercel build setting fix 07/01/2026 19:53:47
