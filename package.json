@@ -25,3 +25,4 @@
     "webpack-dev-server": "^4.15.1"
   }
 }
+"html-webpack-plugin": "^5.5.3"
