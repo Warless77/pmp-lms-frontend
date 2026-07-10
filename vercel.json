@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm install -D webpack-cli && webpack --config webpack.config.js",
+  "buildCommand": "npm install -D webpack-cli && webpack --config webpack.config.js && node scripts/copy-index.js",
   "outputDirectory": "dist",
   "routes": [
     {
