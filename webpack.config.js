@@ -10,18 +10,10 @@ module.exports = {
     publicPath: '/',
     clean: true
   },
-  devServer: {
-    static: {
-      directory: path.join(__dirname, 'public')
-    },
-    historyApiFallback: true,
-    port: 3000,
-    open: false
-  },
   module: {
     rules: [
       {
-        test: /\.jsx?$/,
+        test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
@@ -31,8 +23,12 @@ module.exports = {
         }
       },
       {
-        test: /\.css$/i,
+        test: /\.css$/,
         use: ['style-loader', 'css-loader']
+      },
+      {
+        test: /\.(png|jpe?g|gif|svg)$/i,
+        type: 'asset/resource'
       }
     ]
   },
@@ -44,5 +40,14 @@ module.exports = {
       template: './public/index.html',
       filename: 'index.html'
     })
-  ]
+  ],
+  devServer: {
+    static: {
+      directory: path.join(__dirname, 'public')
+    },
+    historyApiFallback: true,
+    compress: true,
+    port: 3000,
+    open: true
+  }
 };
