@@ -10,6 +10,7 @@ function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,10 +19,13 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
     try {
       await login(form);
       navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Unable to sign in. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -30,6 +34,7 @@ function Login() {
   return (
     <div style={{ maxWidth: '400px', margin: '2rem auto' }}>
       <h2>Login</h2>
+      <p>Private beta access for invited PMP learners.</p>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div>
           <label htmlFor="email">Email</label>
@@ -58,11 +63,7 @@ function Login() {
         <button type="submit" disabled={loading} style={{ padding: '0.75rem', backgroundColor: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
           {loading ? 'Logging in…' : 'Login'}
         </button>
-        <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>
-          Demo student: student@pmplms.com
-          <br />
-          Demo admin: admin@pmplms.com
-        </p>
+        {error && <p role="alert" className="form-error">{error}</p>}
       </form>
     </div>
   );

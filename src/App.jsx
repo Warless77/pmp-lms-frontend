@@ -21,6 +21,7 @@ import Profile from './pages/Profile.jsx';
 import Admin from './pages/Admin.jsx';
 import Settings from './pages/Settings.jsx';
 import NotFound from './pages/NotFound.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 /**
  * Main application component defining all routes.
@@ -40,7 +41,8 @@ function App() {
         <Route path="pricing" element={<Pricing />} />
       </Route>
 
-      {/* Dashboard routes */}
+      {/* Authenticated beta routes */}
+      <Route element={<ProtectedRoute />}>
       <Route element={<DashboardLayout />}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="modules" element={<Modules />} />
@@ -52,8 +54,14 @@ function App() {
         <Route path="analytics" element={<Analytics />} />
         <Route path="certificates" element={<Certificates />} />
         <Route path="profile" element={<Profile />} />
-        <Route path="admin" element={<Admin />} />
         <Route path="settings" element={<Settings />} />
+      </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute adminOnly />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="admin" element={<Admin />} />
+        </Route>
       </Route>
 
       {/* Fallback for all other routes */}
