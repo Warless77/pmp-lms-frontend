@@ -1,33 +1,44 @@
--- PMP question bank. Run this migration in the Supabase SQL editor before
--- importing questions. Answers remain private to authenticated learners.
+-- Extend the existing PMP question table without replacing learner content.
+-- Existing columns include question_text, correct_index, and is_published.
 
-create table if not exists public.questions (
-  id uuid primary key default gen_random_uuid(),
-  source_id text not null unique,
-  domain text not null check (domain in ('people', 'process', 'business')),
-  prompt text not null,
-  options jsonb not null,
-  correct_option_indices integer[] not null default '{}',
-  explanation text,
-  answer_confidence numeric(4,3) not null default 0,
-  review_status text not null default 'needs_review'
-    check (review_status in ('needs_review', 'approved', 'rejected')),
-  published boolean not null default false,
-  source_reference text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint questions_options_are_nonempty check (jsonb_array_length(options) between 2 and 5)
-);
+alter table public.questions
+  add column if not exists source_id text,
+  add column if not exists answer_confidence numeric(4,3) not null default 0,
+  add column if not exists review_status text not null default 'needs_review',
+  add column if not exists source_reference text;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'questions_review_status_check'
+      and conrelid = 'public.questions'::regclass
+  ) then
+    alter table public.questions
+      add constraint questions_review_status_check
+      check (review_status in ('needs_review', 'approved', 'rejected'));
+  end if;
+end;
+$$;
+
+-- Preserve access to any existing published questions while requiring review
+-- for newly imported records.
+update public.questions
+set review_status = case when is_published then 'approved' else 'needs_review' end
+where review_status = 'needs_review';
+
+create unique index if not exists questions_source_id_unique_idx
+  on public.questions (source_id) where source_id is not null;
 
 create index if not exists questions_published_domain_idx
-  on public.questions (domain, id) where published = true;
+  on public.questions (domain, id) where is_published = true;
 
 alter table public.questions enable row level security;
 
 drop policy if exists "Authenticated learners can read published questions" on public.questions;
 create policy "Authenticated learners can read published questions"
   on public.questions for select to authenticated
-  using (published = true and review_status = 'approved');
+  using (is_published = true and review_status = 'approved');
 
 drop policy if exists "Admins can manage questions" on public.questions;
 create policy "Admins can manage questions"
@@ -35,7 +46,6 @@ create policy "Admins can manage questions"
   using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
   with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
--- This trigger is intentionally generic and is also useful for future admin edits.
 create or replace function public.set_updated_at()
 returns trigger language plpgsql as $$
 begin
