@@ -143,8 +143,13 @@ function asCsv(questions) {
 
 const archive = option('--archive');
 const output = option('--out');
+const skip = Number(option('--skip') || 0);
 if (!archive || !output) {
-  console.error('Usage: node scripts/import-pmbank.mjs --archive /path/to/PMBOOK.zip --out /path/to/questions.json');
+  console.error('Usage: node scripts/import-pmbank.mjs --archive /path/to/PMBOOK.zip --out /path/to/questions.csv [--skip number]');
+  process.exit(1);
+}
+if (!Number.isInteger(skip) || skip < 0) {
+  console.error('--skip must be a non-negative whole number');
   process.exit(1);
 }
 
@@ -153,14 +158,15 @@ for (const source of sources) {
   const text = await extractPdfText(resolve(archive), source.file);
   questions.push(...parseDocument(text, source.domain));
 }
+const selectedQuestions = questions.slice(skip);
 
 const payload = {
   generated_at: new Date().toISOString(),
   source: 'PMBOOK.zip structured domain PDFs',
-  question_count: questions.length,
-  questions
+  question_count: selectedQuestions.length,
+  questions: selectedQuestions
 };
 await mkdir(dirname(resolve(output)), { recursive: true });
 const outputPath = resolve(output);
-await writeFile(outputPath, outputPath.endsWith('.csv') ? asCsv(questions) : `${JSON.stringify(payload, null, 2)}\n`);
-console.log(`Wrote ${questions.length} review candidates to ${resolve(output)}`);
+await writeFile(outputPath, outputPath.endsWith('.csv') ? asCsv(selectedQuestions) : `${JSON.stringify(payload, null, 2)}\n`);
+console.log(`Wrote ${selectedQuestions.length} review candidates to ${resolve(output)}`);
