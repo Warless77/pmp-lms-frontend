@@ -10,16 +10,20 @@ import { getQuestions } from '../services/contentService.js';
 function QuestionBank() {
   const [questions, setQuestions] = useState([]);
   const [query, setQuery] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    getQuestions().then(setQuestions);
+    getQuestions().then(setQuestions).catch(() => {
+      setError('The question bank is not available yet. Please ask an administrator to complete the question import.');
+    });
   }, []);
 
   const filtered = questions.filter((q) => q.text.toLowerCase().includes(query.toLowerCase()));
 
   return (
     <div>
-      <PageHeader title="Question Bank" subtitle="Browse and practice exam questions" />
+      <PageHeader title="Question Bank" subtitle={questions.length ? `${questions.length} approved practice questions` : 'Browse and practice exam questions'} />
+      {error && <p role="alert" style={{ color: 'var(--color-error)' }}>{error}</p>}
       <div style={{ marginBottom: '1rem' }}>
         <input
           type="text"
@@ -33,7 +37,7 @@ function QuestionBank() {
         {filtered.map((q) => (
           <li key={q.id} style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
             <p style={{ fontWeight: 600 }}>{q.text}</p>
-            <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem' }}>Topic: N/A • Difficulty: N/A • Domain: N/A</p>
+            <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem' }}>Domain: {q.domain || 'General PMP'}</p>
             <button style={{ marginTop: '0.5rem', padding: '0.5rem 1rem', backgroundColor: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: '4px' }}>
               Attempt
             </button>
