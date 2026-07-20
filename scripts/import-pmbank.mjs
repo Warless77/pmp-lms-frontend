@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /*
  * Extracts the three structured PMP domain PDFs from PMBOOK.zip into a
- * reviewable JSON file. It intentionally does not publish or upload records:
+ * reviewable JSON or CSV file. It intentionally does not publish records:
  * answer keys need a human review before they are used in scored exams.
  *
  * Usage:
- *   node scripts/import-pmbank.mjs --archive /path/to/PMBOOK.zip --out ./pmp-question-candidates.json
+ *   node scripts/import-pmbank.mjs --archive /path/to/PMBOOK.zip --out ./pmp-question-candidates.csv
  *
  * Requires the system commands `unzip` and `pdftotext`.
  */
@@ -87,10 +87,16 @@ function parseDocument(text, domain) {
       // extracted sequence as a stable, import-safe identifier.
       source_id: `pmbank-${domain}-${number}-${sequence + 1}`,
       domain,
-      prompt,
+      question_text: prompt,
       options,
-      correct_option_indices: answer.indices,
-      explanation: explanation || null,
+      // correct_index is required by the existing table. An unverified value
+      // is harmless because every imported record is unpublished and requires
+      // review before learners can retrieve it.
+      correct_index: answer.indices.length === 1 ? answer.indices[0] : 0,
+      explanation,
+      difficulty: 'medium',
+      required_plan: 'premium',
+      is_published: false,
       answer_confidence: answer.confidence,
       review_status: 'needs_review',
       published: false,
@@ -121,6 +127,20 @@ function option(name) {
   return index === -1 ? null : process.argv[index + 1];
 }
 
+function csvCell(value) {
+  const text = typeof value === 'string' ? value : JSON.stringify(value);
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
+function asCsv(questions) {
+  const columns = [
+    'source_id', 'domain', 'difficulty', 'question_text', 'options',
+    'correct_index', 'explanation', 'required_plan', 'is_published',
+    'answer_confidence', 'review_status', 'source_reference'
+  ];
+  return `${columns.join(',')}\n${questions.map((question) => columns.map((column) => csvCell(question[column])).join(',')).join('\n')}\n`;
+}
+
 const archive = option('--archive');
 const output = option('--out');
 if (!archive || !output) {
@@ -141,5 +161,6 @@ const payload = {
   questions
 };
 await mkdir(dirname(resolve(output)), { recursive: true });
-await writeFile(resolve(output), `${JSON.stringify(payload, null, 2)}\n`);
+const outputPath = resolve(output);
+await writeFile(outputPath, outputPath.endsWith('.csv') ? asCsv(questions) : `${JSON.stringify(payload, null, 2)}\n`);
 console.log(`Wrote ${questions.length} review candidates to ${resolve(output)}`);
