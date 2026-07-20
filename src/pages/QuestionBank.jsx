@@ -39,12 +39,10 @@ function QuestionBank() {
         {filtered.map((q) => (
           <li key={q.id} style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
             <p style={{ fontWeight: 600 }}>{q.text}</p>
-            <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem' }}>Domain: {(q.domain || 'general_pmp').replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())}</p>
-            <button
-              type="button"
-              onClick={() => navigate('/quiz')}
-              style={{ marginTop: '0.5rem', padding: '0.5rem 1rem', backgroundColor: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-            >
+            <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem' }}>
+              Domain: {(q.domain || 'general_pmp').replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())}
+            </p>
+            <button type="button" onClick={() => navigate('/quiz')} style={{ marginTop: '0.5rem', padding: '0.5rem 1rem', backgroundColor: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
               Attempt
             </button>
           </li>
