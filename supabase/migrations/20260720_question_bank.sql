@@ -27,8 +27,18 @@ update public.questions
 set review_status = case when is_published then 'approved' else 'needs_review' end
 where review_status = 'needs_review';
 
-create unique index if not exists questions_source_id_unique_idx
-  on public.questions (source_id) where source_id is not null;
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'questions_source_id_key'
+      and conrelid = 'public.questions'::regclass
+  ) then
+    alter table public.questions
+      add constraint questions_source_id_key unique (source_id);
+  end if;
+end;
+$$;
 
 create index if not exists questions_published_domain_idx
   on public.questions (domain, id) where is_published = true;
