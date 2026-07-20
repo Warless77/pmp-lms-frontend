@@ -49,6 +49,7 @@ function normalise(value) {
 }
 
 function parseDocument(text, domain) {
+  const databaseDomain = domain === 'business' ? 'business_environment' : domain;
   const clean = normalise(text).replace(/\nPage \d+ of \d+\n/g, '\n');
   const blocks = clean.split(/(?=^\d+\.\s)/m).filter((block) => /^\d+\.\s/.test(block));
 
@@ -86,7 +87,7 @@ function parseDocument(text, domain) {
       // Source numbering is not unique in every supplied PDF, so include the
       // extracted sequence as a stable, import-safe identifier.
       source_id: `pmbank-${domain}-${number}-${sequence + 1}`,
-      domain,
+      domain: databaseDomain,
       question_text: prompt,
       options,
       // correct_index is required by the existing table. An unverified value
