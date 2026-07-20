@@ -13,11 +13,15 @@ function Quiz() {
   const [selected, setSelected] = useState(null);
   const [score, setScore] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    getQuestions().then(setQuestions);
+    getQuestions().then(setQuestions).catch(() => {
+      setError('The question bank is not available yet. Please ask an administrator to complete the question import.');
+    });
   }, []);
 
+  if (error) return <p role="alert">{error}</p>;
   if (!questions.length) {
     return <p>Loading quiz…</p>;
   }
