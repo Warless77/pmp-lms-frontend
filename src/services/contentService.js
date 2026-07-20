@@ -15,18 +15,18 @@ export function getQuestions() {
 
   return supabase
     .from('questions')
-    .select('id, domain, prompt, options, correct_option_indices, explanation')
-    .eq('published', true)
+    .select('id, domain, question_text, options, correct_index, explanation')
+    .eq('is_published', true)
     .eq('review_status', 'approved')
     .order('id')
     .then(({ data, error }) => {
       if (error) throw error;
       return data.map((question) => ({
         id: question.id,
-        text: question.prompt,
+        text: question.question_text,
         options: question.options,
-        correctIndex: question.correct_option_indices[0],
-        correctIndices: question.correct_option_indices,
+        correctIndex: question.correct_index,
+        correctIndices: [question.correct_index],
         explanation: question.explanation,
         domain: question.domain
       }));
