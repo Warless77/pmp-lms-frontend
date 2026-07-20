@@ -21,10 +21,10 @@ The application reads approved, published questions from Supabase. Apply
 then build review candidates from the supplied archive:
 
 ```bash
-node scripts/import-pmbank.mjs --archive /path/to/PMBOOK.zip --out /tmp/pmp-question-candidates.json
+node scripts/import-pmbank.mjs --archive /path/to/PMBOOK.zip --out /tmp/pmp-question-candidates.csv
 ```
 
-The importer intentionally marks every record `needs_review` and unpublished.
-Review the answer key and explanations before importing records into
-`public.questions`, then mark approved records as published. This prevents an
-unverified extraction from being used for scored PMP practice or mock exams.
+The CSV is ready for Supabase's table import. Every record is `premium`,
+`needs_review`, and unpublished. Review the answer key and explanations before
+marking records published. This prevents an unverified extraction from being
+used for scored PMP practice or mock exams.
