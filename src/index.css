@@ -14,6 +14,13 @@
   --color-border: #E2E8F0;
   font-family: 'Inter', sans-serif;
 }
+.dark-theme {
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-text: #e2e8f0;
+  --color-muted: #cbd5e1;
+  --color-border: #475569;
+}
 
 body {
   margin: 0;
