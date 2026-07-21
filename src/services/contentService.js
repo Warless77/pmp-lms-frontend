@@ -1,5 +1,6 @@
 import { modules, flashcards, sampleQuestions } from '../data/mockData.js';
 import { supabase } from './supabaseClient.js';
+import { getLearnerProgress } from './learnerProgressService.js';
 
 /**
  * Placeholder content service returning mock data. This layer abstracts data
@@ -7,7 +8,11 @@ import { supabase } from './supabaseClient.js';
  */
 
 export function getModules() {
-  return Promise.resolve(modules);
+  const { completedModules } = getLearnerProgress();
+  return Promise.resolve(modules.map((module) => ({
+    ...module,
+    progress: completedModules.includes(module.id) ? 100 : 0
+  })));
 }
 
 export function getQuestions() {
@@ -24,13 +29,26 @@ export function getQuestions() {
       return data.map((question) => ({
         id: question.id,
         text: question.question_text,
-        options: question.options,
-        correctIndex: question.correct_index,
+        options: normaliseOptions(question.options),
+        correctIndex: Number(question.correct_index),
         correctIndices: [question.correct_index],
         explanation: question.explanation,
         domain: question.domain
       }));
     });
+}
+
+function normaliseOptions(options) {
+  if (Array.isArray(options)) return options;
+  if (typeof options === 'string') {
+    try {
+      const parsed = JSON.parse(options);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      return options.split(/\n|\|/).map((option) => option.trim()).filter(Boolean);
+    }
+  }
+  return [];
 }
 
 export function getFlashcards() {
