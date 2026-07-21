@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PageHeader from '../components/PageHeader.jsx';
 import { getFlashcards } from '../services/contentService.js';
+import { recordFlashcardReview } from '../services/learnerProgressService.js';
 
 /**
  * Flashcards page provides a simple spaced‑repetition review experience. Users
@@ -27,8 +28,7 @@ function Flashcards() {
   };
 
   const markDifficulty = (level) => {
-    // Placeholder for algorithm integration
-    console.log('Marked', current.id, level);
+    recordFlashcardReview();
     handleNext();
   };
 
