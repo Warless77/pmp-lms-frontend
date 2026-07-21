@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PageHeader from '../components/PageHeader.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
-import { analyticsData } from '../data/mockData.js';
+import { getLearnerAnalytics } from '../services/analyticsService.js';
 
 /**
  * Analytics page provides insights into the learner's performance. Data is
@@ -11,8 +11,7 @@ import { analyticsData } from '../data/mockData.js';
 function Analytics() {
   const [data, setData] = useState(null);
   useEffect(() => {
-    // In a real app this would call analyticsService.getDashboardAnalytics()
-    setData(analyticsData);
+    getLearnerAnalytics().then(setData).catch(() => setData({ examReadiness: 0, accuracy: 0, domainPerformance: {}, mockAttempts: [] }));
   }, []);
 
   if (!data) return <p>Loading analytics…</p>;
@@ -23,8 +22,9 @@ function Analytics() {
       {/* Exam readiness */}
       <section style={{ marginBottom: '2rem' }}>
         <h4>Exam Readiness</h4>
-        <ProgressBar progress={data.readiness} />
-        <p>{data.readiness}% ready for the exam</p>
+        <ProgressBar progress={data.examReadiness} />
+        <p>{data.examReadiness}% readiness based on your answered questions</p>
+        <p>Accuracy: {data.accuracy}% · Questions answered: {data.questionsAnswered}</p>
       </section>
       {/* Domain performance */}
       <section style={{ marginBottom: '2rem' }}>
@@ -36,24 +36,9 @@ function Analytics() {
           </div>
         ))}
       </section>
-      {/* Knowledge areas */}
-      <section style={{ marginBottom: '2rem' }}>
-        <h4>Knowledge Areas</h4>
-        {Object.entries(data.knowledgeAreas).map(([area, value]) => (
-          <div key={area} style={{ marginBottom: '0.5rem' }}>
-            <p style={{ margin: 0 }}>{area}</p>
-            <ProgressBar progress={value} />
-          </div>
-        ))}
-      </section>
-      {/* Recommendations */}
       <section>
-        <h4>Recommended Focus Areas</h4>
-        <ul>
-          {data.recommendations.map((item, idx) => (
-            <li key={idx}>{item}</li>
-          ))}
-        </ul>
+        <h4>Mock exam history</h4>
+        {data.mockAttempts?.length ? <ul>{data.mockAttempts.map((attempt) => <li key={attempt.completedAt}>{attempt.score} / {attempt.total} — {new Date(attempt.completedAt).toLocaleDateString()}</li>)}</ul> : <p>No mock exams completed yet.</p>}
       </section>
     </div>
   );
