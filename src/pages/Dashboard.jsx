@@ -5,7 +5,6 @@ import ModuleCard from '../components/ModuleCard.jsx';
 import FlashcardPreview from '../components/FlashcardPreview.jsx';
 import { getDashboardAnalytics } from '../services/analyticsService.js';
 import { getModules, getFlashcards } from '../services/contentService.js';
-import { activities } from '../data/mockData.js';
 
 /**
  * Dashboard page summarises the student's progress at a glance. It pulls
@@ -18,7 +17,7 @@ function Dashboard() {
   const [cards, setCards] = useState([]);
 
   useEffect(() => {
-    getDashboardAnalytics().then(setStats);
+    getDashboardAnalytics().then(setStats).catch(() => setStats({}));
     getModules().then(setModules);
     getFlashcards().then(setCards);
   }, []);
@@ -52,16 +51,9 @@ function Dashboard() {
           ))}
         </div>
       </section>
-      {/* Recent Activity */}
       <section>
-        <h3>Recent Activity</h3>
-        <ul style={{ paddingLeft: 0, listStyle: 'none' }}>
-          {activities.map((act) => (
-            <li key={act.id} style={{ marginBottom: '0.5rem' }}>
-              {act.description} on {act.timestamp}
-            </li>
-          ))}
-        </ul>
+        <h3>Recent mock exams</h3>
+        {stats.mockAttempts?.length ? <ul style={{ paddingLeft: 0, listStyle: 'none' }}>{stats.mockAttempts.slice(0, 3).map((attempt) => <li key={attempt.completedAt} style={{ marginBottom: '0.5rem' }}>Scored {attempt.score} / {attempt.total} on {new Date(attempt.completedAt).toLocaleDateString()}</li>)}</ul> : <p style={{ color: 'var(--color-muted)' }}>No mock exam attempts yet. Start one when you are ready.</p>}
       </section>
     </div>
   );
