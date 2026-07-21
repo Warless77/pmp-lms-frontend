@@ -1,107 +1,50 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import PageHeader from '../components/PageHeader.jsx';
 import ExamTimer from '../components/ExamTimer.jsx';
 import QuestionNavigator from '../components/QuestionNavigator.jsx';
 import { getQuestions } from '../services/contentService.js';
+import { recordAnswer, recordMockAttempt } from '../services/learnerProgressService.js';
+
+const BETA_DURATION_SECONDS = 60 * 60;
 
 function MockExam() {
-  const [started, setStarted] = useState(false);
-  const [finished, setFinished] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [phase, setPhase] = useState('welcome');
   const [questions, setQuestions] = useState([]);
+  const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [secondsRemaining, setSecondsRemaining] = useState(60 * 60);
+  const [secondsRemaining, setSecondsRemaining] = useState(BETA_DURATION_SECONDS);
   const [error, setError] = useState('');
 
+  useEffect(() => { getQuestions().then(setQuestions).catch(() => setError('The approved question bank could not be loaded.')); }, []);
   useEffect(() => {
-    getQuestions().then(setQuestions).catch(() => {
-      setError('The approved question bank is not available yet. Please try again after an administrator has published questions.');
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!started || finished || secondsRemaining <= 0) return undefined;
-    const timer = window.setInterval(() => {
-      setSecondsRemaining((remaining) => {
-        if (remaining <= 1) {
-          setFinished(true);
-          return 0;
-        }
-        return remaining - 1;
-      });
-    }, 1000);
+    if (phase !== 'exam') return undefined;
+    const timer = window.setInterval(() => setSecondsRemaining((time) => {
+      if (time <= 1) { setPhase('results'); return 0; }
+      return time - 1;
+    }), 1000);
     return () => window.clearInterval(timer);
-  }, [started, finished, secondsRemaining]);
+  }, [phase]);
 
-  const selectAnswer = (optionIndex) => {
-    if (answers[currentQuestion] !== undefined) return;
-    setAnswers((current) => ({ ...current, [currentQuestion]: optionIndex }));
+  const score = useMemo(() => Object.entries(answers).reduce((total, [index, answer]) => total + (questions[Number(index)]?.correctIndex === answer ? 1 : 0), 0), [answers, questions]);
+  const finish = () => {
+    if (phase !== 'exam') return;
+    Object.entries(answers).forEach(([index, answer]) => recordAnswer(questions[Number(index)].id, questions[Number(index)].correctIndex === answer));
+    recordMockAttempt({ score, total: questions.length, elapsedSeconds: BETA_DURATION_SECONDS - secondsRemaining });
+    setPhase('results');
   };
-  const restartExam = () => {
-    setStarted(false);
-    setFinished(false);
-    setCurrentQuestion(0);
-    setAnswers({});
-    setSecondsRemaining(60 * 60);
-  };
+  const reset = () => { setPhase('welcome'); setCurrent(0); setAnswers({}); setSecondsRemaining(BETA_DURATION_SECONDS); };
 
-  const totalQuestions = questions.length;
-  const question = questions[currentQuestion];
-  const correctAnswers = Object.entries(answers).reduce(
-    (total, [questionIndex, selectedIndex]) => total + (questions[Number(questionIndex)]?.correctIndex === selectedIndex ? 1 : 0),
-    0
-  );
+  if (error) return <p role="alert" className="form-error">{error}</p>;
+  if (!questions.length) return <p>Loading approved questions…</p>;
+  if (phase === 'welcome') return <div><PageHeader title="Mock Exam" subtitle="Timed PMP practice" /><div style={{ maxWidth: '42rem', padding: '1.5rem', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}><h2>Private beta mock exam</h2><p>This exam contains {questions.length} approved questions and a 60-minute timer. Your responses remain editable until you submit.</p><button type="button" onClick={() => setPhase('exam')} style={{ padding: '0.75rem 1.25rem', background: 'var(--color-primary)', color: '#fff', border: 0, borderRadius: '5px', cursor: 'pointer' }}>Start exam</button></div></div>;
+  if (phase === 'results') return <div><PageHeader title="Mock exam complete" subtitle="Your private beta result" /><div style={{ maxWidth: '42rem', padding: '1.5rem', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}><h2>{score} / {questions.length}</h2><p>You answered {Object.keys(answers).length} question{Object.keys(answers).length === 1 ? '' : 's'} in this attempt.</p><p>Results are saved in this browser and update your dashboard analytics.</p><button type="button" onClick={reset} style={{ padding: '0.7rem 1rem', background: 'var(--color-primary)', color: '#fff', border: 0, borderRadius: '5px', cursor: 'pointer' }}>Start a new attempt</button></div></div>;
 
-  return (
-    <div>
-      <PageHeader title="Mock Exam" subtitle="Timed PMP practice" />
-      {error && <p role="alert" style={{ color: 'var(--color-error)' }}>{error}</p>}
-      {!error && !questions.length && <p>Loading approved questions…</p>}
-      {!error && questions.length > 0 && !started ? (
-        <div style={{ textAlign: 'center' }}>
-          <p>This beta mock exam uses all {totalQuestions} approved questions and gives you 60 minutes.</p>
-          <button type="button" onClick={() => setStarted(true)} style={{ padding: '0.75rem 1.5rem', backgroundColor: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-            Start Exam
-          </button>
-        </div>
-      ) : !error && questions.length > 0 && !finished ? (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <ExamTimer minutes={Math.floor(secondsRemaining / 60)} seconds={secondsRemaining % 60} />
-            <button type="button" onClick={() => setFinished(true)} style={{ padding: '0.5rem 1rem', backgroundColor: 'var(--color-error)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-              End Exam
-            </button>
-          </div>
-          <div style={{ marginBottom: '1rem' }}>
-            <QuestionNavigator total={totalQuestions} current={currentQuestion} onSelect={setCurrentQuestion} />
-          </div>
-          <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '1rem' }}>
-            <p style={{ color: 'var(--color-muted)' }}>Question {currentQuestion + 1} of {totalQuestions}</p>
-            <h3>{question.text}</h3>
-            <div style={{ display: 'grid', gap: '0.5rem' }}>
-              {question.options.map((option, optionIndex) => {
-                const selected = answers[currentQuestion] === optionIndex;
-                return (
-                  <button key={optionIndex} type="button" onClick={() => selectAnswer(optionIndex)} disabled={answers[currentQuestion] !== undefined} style={{ textAlign: 'left', padding: '0.75rem 1rem', border: '1px solid var(--color-border)', borderRadius: '4px', backgroundColor: selected ? 'var(--color-primary)' : 'var(--color-surface)', color: selected ? '#fff' : 'inherit', cursor: answers[currentQuestion] === undefined ? 'pointer' : 'default' }}>
-                    {option}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      ) : !error && questions.length > 0 ? (
-        <div style={{ textAlign: 'center', maxWidth: '36rem', margin: '0 auto' }}>
-          <h2>Mock exam complete</h2>
-          <p>You answered {Object.keys(answers).length} of {totalQuestions} questions.</p>
-          <p>Your score: {correctAnswers} / {totalQuestions}</p>
-          <button type="button" onClick={restartExam} style={{ padding: '0.75rem 1.5rem', backgroundColor: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-            Start again
-          </button>
-        </div>
-      ) : null}
-    </div>
-  );
+  const question = questions[current];
+  return <div><PageHeader title="Mock Exam" subtitle={`Question ${current + 1} of ${questions.length}`} />
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1rem' }}><ExamTimer minutes={Math.floor(secondsRemaining / 60)} seconds={secondsRemaining % 60} /><span>{Object.keys(answers).length} answered</span><button type="button" onClick={finish} style={{ padding: '0.55rem 1rem', background: 'var(--color-error)', color: '#fff', border: 0, borderRadius: '5px', cursor: 'pointer' }}>Submit exam</button></div>
+    <QuestionNavigator total={questions.length} current={current} answered={Object.keys(answers).map(Number)} onSelect={setCurrent} />
+    <div style={{ marginTop: '1rem', padding: '1.25rem', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}><h3>{question.text}</h3><div style={{ display: 'grid', gap: '0.6rem' }}>{question.options.map((option, optionIndex) => <button key={optionIndex} type="button" onClick={() => setAnswers((old) => ({ ...old, [current]: optionIndex }))} style={{ textAlign: 'left', padding: '0.8rem 1rem', border: `1px solid ${answers[current] === optionIndex ? 'var(--color-primary)' : 'var(--color-border)'}`, background: answers[current] === optionIndex ? '#dbeafe' : 'var(--color-surface)', borderRadius: '6px', cursor: 'pointer' }}>{String.fromCharCode(65 + optionIndex)}. {option}</button>)}</div><div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}><button type="button" disabled={current === 0} onClick={() => setCurrent((value) => value - 1)} style={{ padding: '0.55rem 1rem' }}>Previous</button><button type="button" disabled={current === questions.length - 1} onClick={() => setCurrent((value) => value + 1)} style={{ padding: '0.55rem 1rem' }}>Next</button></div></div>
+  </div>;
 }
 
 export default MockExam;
