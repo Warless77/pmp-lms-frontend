@@ -51,6 +51,7 @@ function App() {
         <Route path="questions" element={<QuestionBank />} />
         <Route path="quiz" element={<Quiz />} />
         <Route path="mock-exam" element={<MockExam />} />
+        <Route path="mock-exams" element={<MockExam />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="certificates" element={<Certificates />} />
         <Route path="profile" element={<Profile />} />
