@@ -6,7 +6,8 @@
   "scripts": {
     "start": "webpack serve --config webpack.config.js",
     "build": "webpack --config webpack.config.js",
-    "check": "npm run build"
+    "check": "npm run build",
+    "smoke": "node scripts/launch-smoke-test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
