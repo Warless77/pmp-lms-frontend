@@ -1,4 +1,4 @@
-import { modules, flashcards, sampleQuestions } from '../data/mockData.js';
+import { modules, flashcards } from '../data/mockData.js';
 import { supabase } from './supabaseClient.js';
 import { getLearnerProgress } from './learnerProgressService.js';
 
@@ -16,26 +16,41 @@ export function getModules() {
 }
 
 export function getQuestions() {
-  if (!supabase) return Promise.resolve(sampleQuestions);
+  if (!supabase) return Promise.reject(new Error('The private beta question service is not configured.'));
 
   return supabase
-    .from('questions')
-    .select('id, domain, question_text, options, correct_index, explanation')
-    .eq('is_published', true)
-    .eq('review_status', 'approved')
-    .order('id')
+    .rpc('pmp_get_learner_questions', { p_limit: 180 })
     .then(({ data, error }) => {
       if (error) throw error;
-      return data.map((question) => ({
+      return (data || []).map((question) => ({
         id: question.id,
         text: question.question_text,
         options: normaliseOptions(question.options),
-        correctIndex: Number(question.correct_index),
-        correctIndices: [question.correct_index],
-        explanation: question.explanation,
         domain: question.domain
       }));
     });
+}
+
+export async function gradePracticeAnswer(questionId, selectedIndex) {
+  if (!supabase) throw new Error('The private beta question service is not configured.');
+  const { data, error } = await supabase.rpc('pmp_grade_practice_answer', {
+    p_question_id: questionId,
+    p_selected_index: selectedIndex
+  });
+  if (error) throw error;
+  const result = Array.isArray(data) ? data[0] : data;
+  return { isCorrect: Boolean(result?.is_correct), explanation: result?.explanation || '' };
+}
+
+export async function submitMockAttempt(answers, elapsedSeconds) {
+  if (!supabase) throw new Error('The private beta question service is not configured.');
+  const { data, error } = await supabase.rpc('pmp_submit_mock_attempt', {
+    p_answers: answers,
+    p_elapsed_seconds: elapsedSeconds
+  });
+  if (error) throw error;
+  const result = Array.isArray(data) ? data[0] : data;
+  return { score: Number(result?.score || 0), total: Number(result?.total || 0), attemptId: result?.attempt_id };
 }
 
 function normaliseOptions(options) {
