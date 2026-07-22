@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'pmp-lms:learner-progress:v1';
+import { supabase } from './supabaseClient.js';
 
 const initialState = {
   answeredQuestionIds: [],
@@ -62,4 +63,27 @@ export function toggleModuleComplete(moduleId) {
 export function saveSettings(settings) {
   const state = read();
   return write({ ...state, settings: { ...state.settings, ...settings } });
+}
+
+export async function getLearningSummary() {
+  if (!supabase) return getLearnerProgress();
+  const { data, error } = await supabase.rpc('pmp_get_learning_summary');
+  if (error) throw error;
+  const summary = Array.isArray(data) ? data[0] : data;
+  return {
+    ...getLearnerProgress(),
+    answeredCount: Number(summary?.questions_answered || 0),
+    correctCount: Number(summary?.correct_answers || 0),
+    mockAttempts: summary?.mock_attempts || []
+  };
+}
+
+export async function getDomainPerformance() {
+  if (!supabase) return {};
+  const { data, error } = await supabase.rpc('pmp_get_domain_performance');
+  if (error) throw error;
+  return Object.fromEntries((data || []).map((item) => [
+    (item.domain || 'general_pmp').replaceAll('_', ' '),
+    Number(item.questions_answered) ? Math.round((Number(item.correct_answers) / Number(item.questions_answered)) * 100) : 0
+  ]));
 }
