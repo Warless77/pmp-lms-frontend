@@ -24,8 +24,7 @@ function Landing() {
       <section style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <h1 style={{ fontSize: '2.5rem', margin: '0 0 1rem' }}>Learn Smart. Pass Confidently.</h1>
         <p style={{ fontSize: '1.125rem', color: 'var(--color-muted)', maxWidth: '600px', margin: '0 auto 2rem' }}>
-          Premium AI‑powered PMP exam preparation with structured modules, flashcards, realistic mock
-          exams, analytics and personalized study support.
+          Private-beta PMP exam preparation with practice questions, flashcards, timed mock exams and progress tracking.
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
           <Link to="/register" style={{ padding: '0.75rem 1.5rem', backgroundColor: 'var(--color-primary)', color: '#fff', borderRadius: '4px' }}>
@@ -38,7 +37,7 @@ function Landing() {
       </section>
       {/* Value Strip */}
       <section style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '3rem' }}>
-        {['2,500+ PMP Questions', 'Smart Flashcards', '180‑Question Mock Exams', 'AI Study Coach', 'Admin Control'].map((text) => (
+        {['Private beta access', 'Smart Flashcards', 'Timed Mock Exams', 'Progress Tracking', 'Admin Review'].map((text) => (
           <div
             key={text}
             style={{ flex: '1 1 150px', backgroundColor: 'var(--color-surface)', padding: '1rem', border: '1px solid var(--color-border)', borderRadius: '8px', textAlign: 'center' }}

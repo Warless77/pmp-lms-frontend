@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 /**
  * PricingCard displays information about a subscription plan including the
@@ -26,7 +27,8 @@ function PricingCard({ name, price, features, highlight }) {
           <li key={f}>{f}</li>
         ))}
       </ul>
-      <button
+      <Link
+        to="/register"
         style={{
           marginTop: '1rem',
           padding: '0.5rem 1rem',
@@ -34,11 +36,11 @@ function PricingCard({ name, price, features, highlight }) {
           border: 'none',
           backgroundColor: highlight ? '#fff' : 'var(--color-primary)',
           color: highlight ? 'var(--color-primary)' : '#fff',
-          cursor: 'pointer'
+          cursor: 'pointer', textAlign: 'center'
         }}
       >
-        Select
-      </button>
+        Request beta access
+      </Link>
     </div>
   );
 }

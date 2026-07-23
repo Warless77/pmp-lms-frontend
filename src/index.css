@@ -14,6 +14,13 @@
   --color-border: #E2E8F0;
   font-family: 'Inter', sans-serif;
 }
+.dark-theme {
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-text: #e2e8f0;
+  --color-muted: #cbd5e1;
+  --color-border: #475569;
+}
 
 body {
   margin: 0;
@@ -32,4 +39,20 @@ ul {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+* { box-sizing: border-box; }
+button, input, select, textarea { font: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
+}
+.route-status { min-height: 100vh; display: grid; place-items: center; color: var(--color-muted); }
+.form-error, .form-success { margin: 0; padding: 0.75rem; border-radius: 0.5rem; }
+.form-error { color: #991b1b; background: #fef2f2; }
+.form-success { color: #166534; background: #f0fdf4; }
+@media (max-width: 760px) {
+  body { overflow-x: hidden; }
+  aside { width: 176px !important; }
+  main { padding: 0.75rem !important; }
 }
