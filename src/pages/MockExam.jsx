@@ -30,7 +30,7 @@ function MockExam() {
       setSessionId(session.sessionId); setQuestions(session.questions); setAnswers({}); setCurrent(0);
       setSecondsRemaining(Math.max(0, Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000)));
       setPhase('exam');
-    } catch { setError('We could not prepare this mock exam. Please try again shortly.'); }
+    } catch (startError) { setError(`We could not prepare this mock exam. ${startError?.message || 'Please try again shortly.'}`); }
     finally { setSubmitting(false); }
   };
 
