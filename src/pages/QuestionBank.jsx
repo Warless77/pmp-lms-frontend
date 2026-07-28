@@ -13,7 +13,7 @@ function QuestionBank() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    getQuestions().then(setQuestions).catch(() => setError('The question bank could not be loaded. Please try again shortly.'));
+    getQuestions(2100).then(setQuestions).catch(() => setError('The question bank could not be loaded. Please try again shortly.'));
   }, []);
 
   const domains = useMemo(() => [...new Set(questions.map((item) => item.domain).filter(Boolean))], [questions]);

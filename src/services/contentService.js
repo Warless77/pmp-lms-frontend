@@ -15,11 +15,11 @@ export async function getModules() {
   }));
 }
 
-export function getQuestions() {
+export function getQuestions(limit = 180) {
   if (!supabase) return Promise.reject(new Error('The private beta question service is not configured.'));
 
   return supabase
-    .rpc('pmp_get_learner_questions', { p_limit: 180 })
+    .rpc('pmp_get_learner_questions', { p_limit: limit })
     .then(({ data, error }) => {
       if (error) throw error;
       return (data || []).map((question) => ({
