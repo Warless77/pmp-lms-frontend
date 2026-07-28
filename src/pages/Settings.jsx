@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import PageHeader from '../components/PageHeader.jsx';
-import { getLearnerProgress, saveSettings } from '../services/learnerProgressService.js';
+import { getCloudLearnerProgress, saveCloudSettings } from '../services/learnerProgressService.js';
 import { getCurrentUser, requestPasswordReset } from '../services/authService.js';
 
 function Settings() {
-  const [settings, setSettings] = useState(getLearnerProgress().settings);
+  const [settings, setSettings] = useState({ notifications: true, darkMode: false, studyReminders: true });
   const [message, setMessage] = useState('');
+  useEffect(() => { getCloudLearnerProgress().then((progress) => setSettings(progress.settings)).catch(() => {}); }, []);
   useEffect(() => { document.documentElement.classList.toggle('dark-theme', settings.darkMode); }, [settings.darkMode]);
-  const update = (key, value) => { const next = { ...settings, [key]: value }; setSettings(next); saveSettings(next); };
+  const update = async (key, value) => { const next = { ...settings, [key]: value }; setSettings(next); try { await saveCloudSettings(next); } catch { setMessage('Your setting could not be saved. Please try again.'); } };
   const resetPassword = async () => {
     setMessage('');
     try { const account = await getCurrentUser(); await requestPasswordReset(account.user.email); setMessage('Password reset instructions have been sent to your email.'); }

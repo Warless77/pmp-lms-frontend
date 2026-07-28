@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PageHeader from '../components/PageHeader.jsx';
 import { getFlashcards } from '../services/contentService.js';
-import { recordFlashcardReview } from '../services/learnerProgressService.js';
+import { saveCloudFlashcardReview } from '../services/learnerProgressService.js';
 
 /**
  * Flashcards page provides a simple spaced‑repetition review experience. Users
@@ -11,6 +11,7 @@ function Flashcards() {
   const [cards, setCards] = useState([]);
   const [index, setIndex] = useState(0);
   const [showBack, setShowBack] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     getFlashcards().then((f) => setCards(f));
@@ -27,9 +28,14 @@ function Flashcards() {
     setIndex((i) => (i + 1) % cards.length);
   };
 
-  const markDifficulty = (level) => {
-    recordFlashcardReview();
-    handleNext();
+  const markDifficulty = async (level) => {
+    try {
+      await saveCloudFlashcardReview(current.id, level);
+      setMessage('Review saved to your account.');
+      handleNext();
+    } catch {
+      setMessage('We could not save this review. Please try again.');
+    }
   };
 
   return (
@@ -63,6 +69,7 @@ function Flashcards() {
         <p style={{ marginTop: '1rem', color: 'var(--color-muted)' }}>
           Card {index + 1} of {cards.length}
         </p>
+        {message && <p role="status" className="form-success">{message}</p>}
       </div>
     </div>
   );

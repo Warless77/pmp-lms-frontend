@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import PageHeader from '../components/PageHeader.jsx';
 import CertificateCard from '../components/CertificateCard.jsx';
-import { getLearnerProgress } from '../services/learnerProgressService.js';
+import { getLearningSummary } from '../services/learnerProgressService.js';
 
 function Certificates() {
-  const [progress, setProgress] = useState(getLearnerProgress());
+  const [progress, setProgress] = useState({ completedModules: [], mockAttempts: [] });
   useEffect(() => {
-    const refresh = () => setProgress(getLearnerProgress());
+    const refresh = () => getLearningSummary().then(setProgress).catch(() => {});
+    refresh();
     window.addEventListener('pmp-progress-change', refresh);
     return () => window.removeEventListener('pmp-progress-change', refresh);
   }, []);

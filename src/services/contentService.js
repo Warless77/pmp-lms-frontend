@@ -1,18 +1,18 @@
 import { modules, flashcards } from '../data/mockData.js';
 import { supabase } from './supabaseClient.js';
-import { getLearnerProgress } from './learnerProgressService.js';
+import { getCloudLearnerProgress } from './learnerProgressService.js';
 
 /**
  * Placeholder content service returning mock data. This layer abstracts data
  * retrieval and can later be extended to call REST or GraphQL APIs.
  */
 
-export function getModules() {
-  const { completedModules } = getLearnerProgress();
-  return Promise.resolve(modules.map((module) => ({
+export async function getModules() {
+  const { completedModules } = await getCloudLearnerProgress();
+  return modules.map((module) => ({
     ...module,
     progress: completedModules.includes(module.id) ? 100 : 0
-  })));
+  }));
 }
 
 export function getQuestions() {

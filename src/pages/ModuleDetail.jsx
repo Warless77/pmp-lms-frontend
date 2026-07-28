@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
 import { getModules } from '../services/contentService.js';
-import { toggleModuleComplete } from '../services/learnerProgressService.js';
+import { setModuleComplete } from '../services/learnerProgressService.js';
 import { useNavigate } from 'react-router-dom';
 
 /**
@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 function ModuleDetail() {
   const { id } = useParams();
   const [module, setModule] = useState(null);
+  const [message, setMessage] = useState('');
   const navigate = useNavigate();
   useEffect(() => {
     getModules().then((mods) => setModule(mods.find((m) => m.id === id)));
@@ -23,9 +24,15 @@ function ModuleDetail() {
   if (!module) {
     return <p>Loading…</p>;
   }
-  const toggleComplete = () => {
-    toggleModuleComplete(module.id);
-    setModule((current) => ({ ...current, progress: current.progress === 100 ? 0 : 100 }));
+  const toggleComplete = async () => {
+    const complete = module.progress !== 100;
+    try {
+      await setModuleComplete(module.id, complete);
+      setModule((current) => ({ ...current, progress: complete ? 100 : 0 }));
+      setMessage(complete ? 'Module completion saved to your account.' : 'Module completion removed from your account.');
+    } catch {
+      setMessage('We could not save your progress. Please try again.');
+    }
   };
 
   return (
@@ -53,6 +60,7 @@ function ModuleDetail() {
         <button type="button" onClick={toggleComplete} style={{ padding: '0.65rem 1rem', background: module.progress === 100 ? 'var(--color-secondary)' : 'var(--color-primary)', color: '#fff', border: 0, borderRadius: '5px', cursor: 'pointer' }}>{module.progress === 100 ? 'Mark as not completed' : 'Mark module complete'}</button>
         <button type="button" onClick={() => navigate('/questions')} style={{ padding: '0.65rem 1rem', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '5px', cursor: 'pointer' }}>Practise questions</button>
       </div>
+      {message && <p role="status" className="form-success">{message}</p>}
     </div>
   );
 }
