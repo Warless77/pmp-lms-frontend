@@ -27,9 +27,11 @@ begin
   insert into public.pmp_mock_exam_sessions (user_id, started_at, expires_at) values (auth.uid(),v_started_at,v_expires_at) returning id into v_session_id;
   insert into public.pmp_mock_exam_session_questions (session_id,question_id,position)
   select v_session_id,id,row_number() over ()::integer from (
-    select id from public.questions where is_published and review_status='approved' and domain='people' order by random() limit 76
-    union all select id from public.questions where is_published and review_status='approved' and domain='process' order by random() limit 90
-    union all select id from public.questions where is_published and review_status='approved' and domain in ('business','business_environment') order by random() limit 14
+    (select id from public.questions where is_published and review_status='approved' and domain='people' order by random() limit 76)
+    union all
+    (select id from public.questions where is_published and review_status='approved' and domain='process' order by random() limit 90)
+    union all
+    (select id from public.questions where is_published and review_status='approved' and domain in ('business','business_environment') order by random() limit 14)
   ) balanced;
   insert into public.pmp_mock_exam_session_questions (session_id,question_id,position)
   select v_session_id,q.id,existing.count + row_number() over ()::integer from public.questions q cross join (select count(*)::integer as count from public.pmp_mock_exam_session_questions where session_id=v_session_id) existing
