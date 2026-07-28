@@ -25,36 +25,32 @@ function Dashboard() {
   return (
     <div>
       <PageHeader title="Dashboard" subtitle="Your progress overview" />
-      {/* Stats row */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+      <div className="stats-grid">
         <StatCard title="Exam Readiness" value={`${stats.examReadiness || 0}%`} />
         <StatCard title="Study Streak" value={stats.studyStreak || 0} />
         <StatCard title="Modules Completed" value={stats.modulesCompleted || 0} />
         <StatCard title="Questions Answered" value={stats.questionsAnswered || 0} />
         <StatCard title="Flashcards Due" value={stats.flashcardsDue || 0} />
       </div>
-      {/* Modules */}
-      <section style={{ marginBottom: '2rem' }}>
-        <h3>Modules</h3>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="dashboard-grid"><section>
+        <h3 className="section-heading">Continue learning <small>Pick up where you left off</small></h3>
+        <div className="module-grid">
           {modules.map((mod) => (
             <ModuleCard key={mod.id} module={mod} />
           ))}
         </div>
-      </section>
-      {/* Flashcards */}
-      <section style={{ marginBottom: '2rem' }}>
-        <h3>Flashcards Queue</h3>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+      </section><aside>
+      <section className="surface-card" style={{ padding: '1.15rem', marginBottom: '1rem' }}>
+        <h3 className="section-heading">Flashcards <small>Due now</small></h3>
+        <div className="flashcard-stack">
           {cards.slice(0, 3).map((card) => (
             <FlashcardPreview key={card.id} card={card} />
           ))}
         </div>
-      </section>
-      <section>
-        <h3>Recent mock exams</h3>
-        {stats.mockAttempts?.length ? <ul style={{ paddingLeft: 0, listStyle: 'none' }}>{stats.mockAttempts.slice(0, 3).map((attempt) => <li key={attempt.completedAt} style={{ marginBottom: '0.5rem' }}>Scored {attempt.score} / {attempt.total} on {new Date(attempt.completedAt).toLocaleDateString()}</li>)}</ul> : <p style={{ color: 'var(--color-muted)' }}>No mock exam attempts yet. Start one when you are ready.</p>}
-      </section>
+      </section><section className="surface-card attempt-list">
+        <h3 className="section-heading">Recent mock exams</h3>
+        {stats.mockAttempts?.length ? stats.mockAttempts.slice(0, 3).map((attempt) => <div className="attempt-row" key={attempt.completedAt}><span>{new Date(attempt.completedAt).toLocaleDateString()}</span><strong>{attempt.score} / {attempt.total}</strong></div>) : <p style={{ color: 'var(--color-muted)', fontSize: '.86rem', margin: 0 }}>No attempts yet. Start a mock exam when you are ready.</p>}
+      </section></aside></div>
     </div>
   );
 }

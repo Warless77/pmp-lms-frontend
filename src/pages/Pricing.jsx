@@ -11,7 +11,8 @@ import { pricingPlans } from '../data/mockData.js';
 function Pricing() {
   return (
     <div>
-      <PageHeader title="Pricing" subtitle="Choose a plan that suits your needs" />
+      <PageHeader title="Private beta access" subtitle="Plans are being tested; payment is not enabled." />
+      <p className="form-success">This is an invitation-only beta. You will not be charged and no purchase is available yet.</p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
         {pricingPlans.map((plan) => (
           <PricingCard key={plan.name} name={plan.name} price={plan.price} features={plan.features} highlight={plan.highlight} />

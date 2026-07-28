@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { logout } from '../services/authService.js';
+import { BarChart3, BookOpen, Brain, CreditCard, FileQuestion, GraduationCap, LayoutDashboard, LogOut, Settings, Sparkles, UserRound } from 'lucide-react';
 
 /**
  * Sidebar for the dashboard. Uses NavLink to apply active styles. Adjust the
@@ -13,17 +14,17 @@ function Sidebar() {
   const { account } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
   const links = [
-    { to: '/dashboard', label: 'Dashboard' },
-    { to: '/modules', label: 'Modules' },
-    { to: '/flashcards', label: 'Flashcards' },
-    { to: '/questions', label: 'Question Bank' },
-    { to: '/quiz', label: 'Quiz' },
-    { to: '/mock-exam', label: 'Mock Exams' },
-    { to: '/analytics', label: 'Analytics' },
-    { to: '/certificates', label: 'Certificates' },
-    { to: '/profile', label: 'Profile' },
-    { to: '/settings', label: 'Settings' },
-    ...(account?.profile?.role === 'admin' ? [{ to: '/admin', label: 'Admin' }] : [])
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/modules', label: 'Modules', icon: BookOpen },
+    { to: '/flashcards', label: 'Flashcards', icon: Brain },
+    { to: '/questions', label: 'Question Bank', icon: FileQuestion },
+    { to: '/quiz', label: 'Practice Quiz', icon: Sparkles },
+    { to: '/mock-exam', label: 'Mock Exam', icon: GraduationCap },
+    { to: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { to: '/certificates', label: 'Certificates', icon: CreditCard },
+    { to: '/profile', label: 'Profile', icon: UserRound },
+    { to: '/settings', label: 'Settings', icon: Settings },
+    ...(account?.profile?.role === 'admin' ? [{ to: '/admin', label: 'Admin', icon: Settings }] : [])
   ];
 
   const handleSignOut = async () => {
@@ -37,32 +38,28 @@ function Sidebar() {
   };
 
   return (
-    <aside style={{ width: '220px', backgroundColor: 'var(--color-surface)', borderRight: '1px solid var(--color-border)', padding: '1rem' }}>
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+    <aside className="sidebar">
+      <div className="brand"><span className="brand-mark">P</span>PMP Compass</div>
+      <p className="nav-label">Learning space</p>
+      <nav className="sidebar-nav">
         {links.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
-            style={({ isActive }) => ({
-              padding: '0.5rem 1rem',
-              borderRadius: '4px',
-              backgroundColor: isActive ? 'var(--color-primary)' : 'transparent',
-              color: isActive ? '#fff' : 'inherit',
-              textDecoration: 'none'
-            })}
+            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
           >
-            {link.label}
+            <link.icon size={17} strokeWidth={2.1} />{link.label}
           </NavLink>
         ))}
       </nav>
-      <button
+      <div className="sidebar-bottom"><button
         type="button"
         onClick={handleSignOut}
         disabled={signingOut}
-        style={{ width: '100%', marginTop: '2rem', padding: '0.5rem 1rem', border: '1px solid var(--color-border)', borderRadius: '4px', backgroundColor: 'transparent', cursor: signingOut ? 'wait' : 'pointer' }}
+        className="signout-button"
       >
-        {signingOut ? 'Signing out…' : 'Sign out'}
-      </button>
+        <LogOut size={17} />{signingOut ? 'Signing out…' : 'Sign out'}
+      </button></div>
     </aside>
   );
 }

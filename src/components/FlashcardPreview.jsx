@@ -8,9 +8,8 @@ import React from 'react';
  */
 function FlashcardPreview({ card }) {
   return (
-    <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '1rem', flex: 1 }}>
-      <p style={{ fontWeight: 600 }}>{card.front}</p>
-      {card.back && <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem' }}>{card.back}</p>}
+    <div className="flashcard-preview">
+      <p>{card.front}</p>{card.back && <p style={{ color: 'var(--color-muted)', fontSize: '.82rem', marginBottom: 0 }}>{card.back}</p>}
     </div>
   );
 }

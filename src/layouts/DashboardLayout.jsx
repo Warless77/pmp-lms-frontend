@@ -9,10 +9,10 @@ import Sidebar from '../components/Sidebar.jsx';
  */
 function DashboardLayout() {
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="app-shell">
       <Sidebar />
-      <main style={{ flex: 1, padding: '1rem' }}>
-        <Outlet />
+      <main className="app-main">
+        <div className="content-wrap"><Outlet /></div>
       </main>
     </div>
   );

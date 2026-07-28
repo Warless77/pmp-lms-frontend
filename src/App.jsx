@@ -1,26 +1,26 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MarketingLayout from './layouts/MarketingLayout.jsx';
 import DashboardLayout from './layouts/DashboardLayout.jsx';
 
 // Page components
-import Landing from './pages/Landing.jsx';
-import Login from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
-import Dashboard from './pages/Dashboard.jsx';
-import Modules from './pages/Modules.jsx';
-import ModuleDetail from './pages/ModuleDetail.jsx';
-import Flashcards from './pages/Flashcards.jsx';
-import QuestionBank from './pages/QuestionBank.jsx';
-import Quiz from './pages/Quiz.jsx';
-import MockExam from './pages/MockExam.jsx';
-import Analytics from './pages/Analytics.jsx';
-import Pricing from './pages/Pricing.jsx';
-import Certificates from './pages/Certificates.jsx';
-import Profile from './pages/Profile.jsx';
-import Admin from './pages/Admin.jsx';
-import Settings from './pages/Settings.jsx';
-import NotFound from './pages/NotFound.jsx';
+const Landing = lazy(() => import('./pages/Landing.jsx'));
+const Login = lazy(() => import('./pages/Login.jsx'));
+const Register = lazy(() => import('./pages/Register.jsx'));
+const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
+const Modules = lazy(() => import('./pages/Modules.jsx'));
+const ModuleDetail = lazy(() => import('./pages/ModuleDetail.jsx'));
+const Flashcards = lazy(() => import('./pages/Flashcards.jsx'));
+const QuestionBank = lazy(() => import('./pages/QuestionBank.jsx'));
+const Quiz = lazy(() => import('./pages/Quiz.jsx'));
+const MockExam = lazy(() => import('./pages/MockExam.jsx'));
+const Analytics = lazy(() => import('./pages/Analytics.jsx'));
+const Pricing = lazy(() => import('./pages/Pricing.jsx'));
+const Certificates = lazy(() => import('./pages/Certificates.jsx'));
+const Profile = lazy(() => import('./pages/Profile.jsx'));
+const Admin = lazy(() => import('./pages/Admin.jsx'));
+const Settings = lazy(() => import('./pages/Settings.jsx'));
+const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 /**
@@ -31,7 +31,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
  * a simple 404 page for unknown paths.
  */
 function App() {
-  return (
+  return <Suspense fallback={<div className="route-status">Loading PMP Compass…</div>}>
     <Routes>
       {/* Marketing routes */}
       <Route element={<MarketingLayout />}>
@@ -68,7 +68,7 @@ function App() {
       {/* Fallback for all other routes */}
       <Route path="*" element={<NotFound />} />
     </Routes>
-  );
+  </Suspense>;
 }
 
 export default App;

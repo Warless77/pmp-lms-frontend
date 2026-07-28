@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
-import { getQuestions, gradePracticeAnswer } from '../services/contentService.js';
+import { getPracticeQuestions, gradePracticeAnswer } from '../services/contentService.js';
 import { recordAnswer } from '../services/learnerProgressService.js';
 
 function Quiz() {
@@ -16,12 +16,7 @@ function Quiz() {
   const [review, setReview] = useState(null);
 
   useEffect(() => {
-    getQuestions().then((items) => {
-      const requested = location.state?.questionId;
-      if (requested) {
-        const found = items.findIndex((item) => String(item.id) === String(requested));
-        if (found >= 0) setIndex(found);
-      }
+    getPracticeQuestions(20, location.state?.questionId).then((items) => {
       setQuestions(items);
     }).catch(() => setError('The quiz could not be loaded. Please try again shortly.'));
   }, [location.state]);
@@ -47,29 +42,30 @@ function Quiz() {
     if (index + 1 === questions.length) setComplete(true);
     else { setIndex((value) => value + 1); setSelected(null); setReview(null); }
   };
-  const restart = () => { setIndex(0); setSelected(null); setReview(null); setScore(0); setComplete(false); navigate('/quiz', { replace: true }); };
+  const restart = () => { setIndex(0); setSelected(null); setReview(null); setScore(0); setComplete(false); setQuestions([]); getPracticeQuestions().then(setQuestions).catch(() => setError('The quiz could not be loaded. Please try again shortly.')); navigate('/quiz', { replace: true }); };
 
   if (complete) return (
-    <div><PageHeader title="Quiz complete" subtitle="Your practice result" />
-      <div style={{ maxWidth: '38rem', padding: '1.5rem', border: '1px solid var(--color-border)', borderRadius: '8px', background: 'var(--color-surface)' }}>
-        <h2>{score} / {questions.length}</h2><p>You can revisit explanations at any time by retaking the quiz.</p>
-        <button type="button" onClick={restart} style={{ padding: '0.65rem 1rem', background: 'var(--color-primary)', color: '#fff', border: 0, borderRadius: '5px', cursor: 'pointer' }}>Practise again</button>
+    <div><PageHeader title="Practice complete" subtitle="A focused review builds exam confidence." />
+      <div className="surface-card result-card">
+        <span className="page-eyebrow">Practice result</span><div className="result-score">{score}<span>/ {questions.length} correct</span></div><p>You can revisit the explanations at any time by practising again.</p>
+        <button className="button-primary" type="button" onClick={restart}>Practise again</button>
       </div></div>
   );
 
   return (
-    <div><PageHeader title="Quiz" subtitle={`Question ${index + 1} of ${questions.length}`} />
-      <div style={{ maxWidth: '46rem', margin: '0 auto' }}>
-        <div style={{ padding: '1.25rem', border: '1px solid var(--color-border)', borderRadius: '8px', background: 'var(--color-surface)' }}>
-          <p style={{ color: 'var(--color-muted)' }}>Score so far: {score}</p><h3>{question.text}</h3>
-          <div style={{ display: 'grid', gap: '0.6rem' }}>{question.options.map((option, optionIndex) => {
+    <div><PageHeader title="Practice Quiz" subtitle={`Question ${index + 1} of ${questions.length}`} />
+      <div style={{ maxWidth: '820px', margin: '0 auto' }}>
+        <div className="surface-card exam-topbar"><div className="exam-progress"><div className="exam-progress-label"><span>Quiz progress</span><span>{index + 1}/{questions.length}</span></div><div className="exam-progress-track"><div className="exam-progress-bar" style={{ width: `${((index + 1) / questions.length) * 100}%` }} /></div></div><strong style={{ color: 'var(--color-primary)', fontSize: '.88rem' }}>Score: {score}</strong></div>
+        <div className="surface-card exam-question">
+          <p className="question-kicker">Choose the best answer</p><h2 className="question-text">{question.text}</h2>
+          <div className="answer-list">{question.options.map((option, optionIndex) => {
             const reviewed = review !== null;
             const chosen = optionIndex === selected;
-            const background = !reviewed ? 'var(--color-surface)' : review.isCorrect && chosen ? '#dcfce7' : chosen ? '#fee2e2' : 'var(--color-surface)';
-            return <button key={optionIndex} type="button" onClick={() => select(optionIndex)} disabled={reviewed} style={{ textAlign: 'left', padding: '0.8rem 1rem', border: `1px solid ${chosen ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: '6px', background, cursor: reviewed ? 'default' : 'pointer' }}>{String.fromCharCode(65 + optionIndex)}. {option}</button>;
+            const status = reviewed && chosen ? (review.isCorrect ? 'correct' : 'incorrect') : chosen ? 'selected' : '';
+            return <button key={optionIndex} className={`answer-option ${status}`} type="button" onClick={() => select(optionIndex)} disabled={reviewed}><span className="answer-letter">{String.fromCharCode(65 + optionIndex)}</span><span>{option}</span></button>;
           })}</div>
-          {review && <div style={{ marginTop: '1rem', padding: '0.85rem', background: '#f8fafc', borderRadius: '6px' }}><strong>{review.isCorrect ? 'Correct.' : 'Not quite.'}</strong><p style={{ marginBottom: 0 }}>{review.explanation}</p></div>}
-          <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between', gap: '1rem' }}><button type="button" onClick={() => navigate('/questions')} style={{ padding: '0.6rem 1rem', background: 'transparent', border: '1px solid var(--color-border)', borderRadius: '5px', cursor: 'pointer' }}>Question bank</button><button type="button" onClick={next} disabled={!review} style={{ padding: '0.6rem 1rem', background: !review ? 'var(--color-border)' : 'var(--color-primary)', color: '#fff', border: 0, borderRadius: '5px', cursor: !review ? 'not-allowed' : 'pointer' }}>{index + 1 === questions.length ? 'Finish quiz' : 'Next question'}</button></div>
+          {review && <div className={`review-card ${review.isCorrect ? 'correct' : 'incorrect'}`}><strong className="review-status">{review.isCorrect ? 'Correct answer' : 'Review this concept'}</strong><p style={{ margin: '.45rem 0 0' }}>{review.explanation}</p></div>}
+          <div className="question-actions"><button className="button-secondary" type="button" onClick={() => navigate('/questions')}>Question bank</button><button className="button-primary" type="button" onClick={next} disabled={!review}>{index + 1 === questions.length ? 'Finish quiz' : 'Next question'}</button></div>
         </div>
       </div>
     </div>

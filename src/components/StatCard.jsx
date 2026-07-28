@@ -6,10 +6,9 @@ import React from 'react';
  */
 function StatCard({ title, value, children }) {
   return (
-    <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '1rem', flex: 1 }}>
-      <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>{value}</div>
-      <div style={{ color: 'var(--color-muted)', marginTop: '0.25rem' }}>{title}</div>
-      {children && <div style={{ marginTop: '0.5rem' }}>{children}</div>}
+    <div className="stat-card">
+      <div className="stat-value">{value}</div><div className="stat-title">{title}</div>
+      {children && <div style={{ marginTop: '.5rem' }}>{children}</div>}
     </div>
   );
 }

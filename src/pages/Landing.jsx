@@ -24,11 +24,11 @@ function Landing() {
       <section style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <h1 style={{ fontSize: '2.5rem', margin: '0 0 1rem' }}>Learn Smart. Pass Confidently.</h1>
         <p style={{ fontSize: '1.125rem', color: 'var(--color-muted)', maxWidth: '600px', margin: '0 auto 2rem' }}>
-          Private-beta PMP exam preparation with practice questions, flashcards, timed mock exams and progress tracking.
+          Invitation-only PMP exam preparation with practice questions, flashcards, timed mock exams and progress tracking.
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
           <Link to="/register" style={{ padding: '0.75rem 1.5rem', backgroundColor: 'var(--color-primary)', color: '#fff', borderRadius: '4px' }}>
-            Start 7‑Day Trial
+            Request beta access
           </Link>
           <Link to="/dashboard" style={{ padding: '0.75rem 1.5rem', border: '1px solid var(--color-primary)', color: 'var(--color-primary)', borderRadius: '4px' }}>
             View Dashboard
@@ -55,9 +55,9 @@ function Landing() {
           ))}
         </div>
       </section>
-      {/* Pricing preview */}
+      {/* Future plans */}
       <section style={{ marginBottom: '3rem' }}>
-        <h2 style={{ textAlign: 'center' }}>Pricing</h2>
+        <h2 style={{ textAlign: 'center' }}>Planned access options</h2>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
           {pricingPlans.map((plan) => (
             <PricingCard key={plan.name} name={plan.name} price={plan.price} features={plan.features} highlight={plan.highlight} />

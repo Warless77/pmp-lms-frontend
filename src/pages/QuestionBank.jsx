@@ -4,6 +4,7 @@ import PageHeader from '../components/PageHeader.jsx';
 import { getQuestions } from '../services/contentService.js';
 
 const titleCaseDomain = (domain) => (domain || 'general_pmp').replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+const PAGE_SIZE = 24;
 
 function QuestionBank() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ function QuestionBank() {
   const [query, setQuery] = useState('');
   const [domain, setDomain] = useState('all');
   const [error, setError] = useState('');
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     getQuestions(2100).then(setQuestions).catch(() => setError('The question bank could not be loaded. Please try again shortly.'));
@@ -20,30 +22,36 @@ function QuestionBank() {
   const filtered = questions.filter((question) =>
     (domain === 'all' || question.domain === domain) && question.text.toLowerCase().includes(query.trim().toLowerCase())
   );
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount - 1);
+  const visibleQuestions = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+
+  const updateQuery = (value) => { setQuery(value); setPage(0); };
+  const updateDomain = (value) => { setDomain(value); setPage(0); };
 
   return (
     <div>
       <PageHeader title="Question Bank" subtitle={questions.length ? `${questions.length} approved practice questions` : 'Loading your practice questions'} />
       {error && <p role="alert" className="form-error">{error}</p>}
-      {!error && <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-        <input type="search" aria-label="Search questions" placeholder="Search questions…" value={query} onChange={(event) => setQuery(event.target.value)} style={{ flex: '1 1 18rem', padding: '0.65rem', border: '1px solid var(--color-border)', borderRadius: '6px' }} />
-        <select aria-label="Filter by domain" value={domain} onChange={(event) => setDomain(event.target.value)} style={{ padding: '0.65rem', border: '1px solid var(--color-border)', borderRadius: '6px' }}>
+      {!error && <div className="question-bank-toolbar">
+        <input className="field-control search-field" type="search" aria-label="Search questions" placeholder="Search the PMP question bank" value={query} onChange={(event) => updateQuery(event.target.value)} />
+        <select className="field-control select-field" aria-label="Filter by domain" value={domain} onChange={(event) => updateDomain(event.target.value)}>
           <option value="all">All domains</option>
           {domains.map((item) => <option key={item} value={item}>{titleCaseDomain(item)}</option>)}
         </select>
       </div>}
       {!error && !questions.length && <p>Loading approved questions…</p>}
-      <p style={{ color: 'var(--color-muted)' }}>{filtered.length} question{filtered.length === 1 ? '' : 's'} available</p>
-      <ul style={{ padding: 0, listStyle: 'none' }}>
-        {filtered.map((question) => (
-          <li key={question.id} style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-            <p style={{ fontWeight: 600, marginTop: 0 }}>{question.text}</p>
-            <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem' }}>Domain: {titleCaseDomain(question.domain)}</p>
-            <button type="button" onClick={() => navigate('/quiz', { state: { questionId: question.id } })} style={{ padding: '0.5rem 1rem', backgroundColor: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Attempt this question</button>
+      <div className="question-bank-meta"><span>{filtered.length.toLocaleString()} question{filtered.length === 1 ? '' : 's'} available</span><span>{domain === 'all' ? 'All PMP domains' : titleCaseDomain(domain)}</span></div>
+      <ul className="question-list">
+        {visibleQuestions.map((question) => (
+          <li className="question-list-card" key={question.id}>
+            <div><p>{question.text}</p><span className="domain-pill">{titleCaseDomain(question.domain)}</span></div>
+            <button className="button-primary" type="button" onClick={() => navigate('/quiz', { state: { questionId: question.id } })}>Practice</button>
           </li>
         ))}
         {questions.length > 0 && filtered.length === 0 && <li>No questions match your search.</li>}
       </ul>
+      {filtered.length > PAGE_SIZE && <nav className="question-bank-pagination" aria-label="Question bank pages"><button className="button-secondary" type="button" disabled={currentPage === 0} onClick={() => setPage((value) => Math.max(0, value - 1))}>Previous</button><span>Page {currentPage + 1} of {pageCount}</span><button className="button-secondary" type="button" disabled={currentPage + 1 >= pageCount} onClick={() => setPage((value) => Math.min(pageCount - 1, value + 1))}>Next</button></nav>}
     </div>
   );
 }

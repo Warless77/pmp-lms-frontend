@@ -31,6 +31,17 @@ export function getQuestions(limit = 180) {
     });
 }
 
+export function getPracticeQuestions(limit = 20, firstQuestionId = null) {
+  if (!supabase) return Promise.reject(new Error('The private beta question service is not configured.'));
+  const request = firstQuestionId
+    ? supabase.rpc('pmp_get_practice_questions_for_question', { p_question_id: firstQuestionId, p_limit: limit })
+    : supabase.rpc('pmp_get_practice_questions', { p_limit: limit });
+  return request.then(({ data, error }) => {
+    if (error) throw error;
+    return (data || []).map((question) => ({ id: question.id, text: question.question_text, options: normaliseOptions(question.options), domain: question.domain }));
+  });
+}
+
 export async function gradePracticeAnswer(questionId, selectedIndex) {
   if (!supabase) throw new Error('The private beta question service is not configured.');
   const { data, error } = await supabase.rpc('pmp_grade_practice_answer', {
@@ -51,6 +62,22 @@ export async function submitMockAttempt(answers, elapsedSeconds) {
   if (error) throw error;
   const result = Array.isArray(data) ? data[0] : data;
   return { score: Number(result?.score || 0), total: Number(result?.total || 0), attemptId: result?.attempt_id, review: Array.isArray(result?.review) ? result.review : [] };
+}
+
+export async function startMockExam(durationSeconds = 13800) {
+  if (!supabase) throw new Error('The private beta question service is not configured.');
+  const { data, error } = await supabase.rpc('pmp_start_mock_exam', { p_duration_seconds: durationSeconds });
+  if (error) throw error;
+  const result = Array.isArray(data) ? data[0] : data;
+  return { sessionId: result?.session_id, expiresAt: result?.expires_at, questions: (result?.questions || []).map((question) => ({ id: question.id, text: question.question_text, options: normaliseOptions(question.options), domain: question.domain })) };
+}
+
+export async function submitMockExamSession(sessionId, answers) {
+  if (!supabase) throw new Error('The private beta question service is not configured.');
+  const { data, error } = await supabase.rpc('pmp_submit_mock_exam_session', { p_session_id: sessionId, p_answers: answers });
+  if (error) throw error;
+  const result = Array.isArray(data) ? data[0] : data;
+  return { score: Number(result?.score || 0), total: Number(result?.total || 180), attemptId: result?.attempt_id, review: Array.isArray(result?.review) ? result.review : [], expired: Boolean(result?.expired) };
 }
 
 function normaliseOptions(options) {
