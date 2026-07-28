@@ -33,9 +33,9 @@ function Quiz() {
       setReview(result);
       if (result.isCorrect) setScore((value) => value + 1);
       recordAnswer(question.id, result.isCorrect);
-    } catch {
+    } catch (gradeError) {
       setSelected(null);
-      setError('We could not grade that answer. Please try again.');
+      setError(`We could not grade that answer. ${gradeError?.message || 'Please try again.'}`);
     }
   };
   const next = () => {
