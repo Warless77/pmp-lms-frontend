@@ -93,6 +93,21 @@ function normaliseOptions(options) {
   return [];
 }
 
-export function getFlashcards() {
-  return Promise.resolve(flashcards);
+export async function getFlashcards(limit = 1000) {
+  if (!supabase) return flashcards;
+  const { data, error } = await supabase.rpc('pmp_get_flashcards', { p_limit: Math.min(Math.max(limit, 1), 1000) });
+  if (error) throw error;
+  return (data || []).map((card) => ({
+    id: card.id,
+    domain: formatFlashcardDomain(card.domain),
+    front: card.front,
+    back: card.back
+  }));
+}
+
+function formatFlashcardDomain(domain) {
+  if (domain === 'business_environment' || domain === 'business') return 'Business Environment';
+  if (domain === 'people') return 'People';
+  if (domain === 'process') return 'Process';
+  return domain || 'PMP';
 }

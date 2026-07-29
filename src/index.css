@@ -76,6 +76,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .flashcard-stack { display:grid; gap:.75rem; }
 .flashcard-preview { padding:1rem; border:1px solid var(--color-border); border-radius:12px; background:linear-gradient(135deg,#fff,#f8fbff); }
 .flashcard-preview p:first-child { margin-bottom:.4rem; font-weight:700; }
+.flashcard-library-summary { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:.45rem; margin:0 auto 1rem; padding:.7rem 1rem; border:1px solid #cfe0ff; border-radius:12px; color:#355071; background:#f3f8ff; font-size:.86rem; }
+.flashcard-library-summary strong { color:var(--color-primary); font-size:1.05rem; }
+.flashcard-library-summary span { color:var(--color-muted); }
 .attempt-list { display:grid; gap:.55rem; padding:1rem; }
 .attempt-row { display:flex; justify-content:space-between; gap:.75rem; padding:.75rem 0; border-bottom:1px solid var(--color-border); font-size:.87rem; }
 .attempt-row:last-child { border-bottom:0; }
