@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PageHeader from '../components/PageHeader.jsx';
 import AdminCard from '../components/AdminCard.jsx';
-import { getAdminOverview, getReviewQueue, setQuestionReview, grantBetaAccess, revokeBetaAccess } from '../services/adminService.js';
+import { getAdminOverview, getReviewQueue, setQuestionReview, setLearnerTier, revokeBetaAccess } from '../services/adminService.js';
 
 function Admin() {
   const [overview, setOverview] = useState(null);
@@ -9,6 +9,8 @@ function Admin() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
+  const [tier, setTier] = useState('trial');
+  const [expiresAt, setExpiresAt] = useState('');
 
   const load = async () => {
     setError('');
@@ -25,8 +27,11 @@ function Admin() {
   };
   const invite = async (event) => {
     event.preventDefault(); setMessage(''); setError('');
-    try { await grantBetaAccess(inviteEmail); setInviteEmail(''); setMessage('Beta access granted. The learner can now sign in and test the platform.'); await load(); }
-    catch (inviteError) { setError(inviteError.message || 'The learner must register before beta access can be granted.'); }
+    try {
+      await setLearnerTier(inviteEmail, tier, expiresAt ? new Date(`${expiresAt}T23:59:59`).toISOString() : null);
+      setMessage(`${tier[0].toUpperCase()}${tier.slice(1)} plan saved. The learner can now sign in with that tier.`);
+      await load();
+    } catch (inviteError) { setError(inviteError.message || 'The learner must register before a plan can be assigned.'); }
   };
   const revoke = async () => {
     if (!inviteEmail) { setError('Enter the learner email before revoking access.'); return; }
@@ -44,8 +49,8 @@ function Admin() {
       <AdminCard title="Beta learners" value={overview?.beta_learners ?? '—'} />
       <AdminCard title="Mock attempts" value={overview?.completed_mock_attempts ?? '—'} />
     </div>
-    <section style={{ marginBottom: '2rem', maxWidth: '42rem' }}><h3>Invite a beta learner</h3><p style={{ color: 'var(--color-muted)' }}>The learner must register first. This grants invite-only beta access; it does not take payment.</p>
-      <form onSubmit={invite} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}><input required type="email" value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} placeholder="learner@example.com" aria-label="Learner email" style={{ flex: '1 1 16rem', padding: '0.6rem', border: '1px solid var(--color-border)', borderRadius: '5px' }} /><button type="submit">Grant beta access</button><button type="button" onClick={revoke}>Revoke access</button></form>
+    <section style={{ marginBottom: '2rem', maxWidth: '42rem' }}><h3>Manage learner plan</h3><p style={{ color: 'var(--color-muted)' }}>The learner must register first. This changes access immediately; payments remain disabled during beta.</p>
+      <form onSubmit={invite} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}><input required type="email" value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} placeholder="learner@example.com" aria-label="Learner email" style={{ flex: '1 1 16rem', padding: '0.6rem', border: '1px solid var(--color-border)', borderRadius: '5px' }} /><select value={tier} onChange={(event) => setTier(event.target.value)} aria-label="Learner tier"><option value="trial">Trial — 7 days</option><option value="standard">Standard</option><option value="premium">Premium</option></select><input type="date" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} aria-label="Plan expiry date" title="Optional expiry date" /><button type="submit">Save plan</button><button type="button" onClick={revoke}>Revoke access</button></form>
     </section>
     <section><h3>Question review queue</h3><p style={{ color: 'var(--color-muted)' }}>Approve only after checking the answer and explanation against the source material.</p>
       {!queue.length && !error && <p>No questions are waiting for review.</p>}

@@ -21,11 +21,11 @@ export async function setQuestionReview(questionId, status, publish = false) {
   if (error) throw error;
 }
 
-export async function grantBetaAccess(email) {
-  const { error } = await requireSupabase().rpc('pmp_admin_grant_beta_access', {
+export async function setLearnerTier(email, tier, expiresAt = null) {
+  const { error } = await requireSupabase().rpc('pmp_admin_set_learner_tier', {
     p_email: email,
-    p_access_level: 'beta',
-    p_expires_at: null
+    p_tier: tier,
+    p_expires_at: expiresAt
   });
   if (error) throw error;
 }

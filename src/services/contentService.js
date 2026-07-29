@@ -31,6 +31,22 @@ export function getQuestions(limit = 180) {
     });
 }
 
+export async function getLearnerEntitlement() {
+  if (!supabase) throw new Error('The learning-plan service is not configured.');
+  const { data, error } = await supabase.rpc('pmp_get_learner_entitlement');
+  if (error) throw error;
+  const result = Array.isArray(data) ? data[0] : data;
+  return {
+    tier: result?.tier || 'none',
+    expiresAt: result?.expires_at || null,
+    flashcardLimit: Number(result?.flashcard_limit || 0),
+    practiceLimit: result?.practice_limit === null ? null : Number(result?.practice_limit || 0),
+    questionBankEnabled: Boolean(result?.question_bank_enabled),
+    mockExamEnabled: Boolean(result?.mock_exam_enabled),
+    aiCoachEnabled: Boolean(result?.ai_coach_enabled)
+  };
+}
+
 export function getPracticeQuestions(limit = 20, firstQuestionId = null) {
   if (!supabase) return Promise.reject(new Error('The private beta question service is not configured.'));
   const request = firstQuestionId

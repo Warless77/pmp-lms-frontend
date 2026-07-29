@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
-const [app, contentService, migration, mockSessionMigration, mockExam, vercel] = await Promise.all([
+const [app, contentService, migration, mockSessionMigration, tierMigration, adminService, mockExam, vercel] = await Promise.all([
   read('src/App.jsx'), read('src/services/contentService.js'),
   read('supabase/migrations/20260721_private_beta_launch_foundation.sql'),
   read('supabase/migrations/20260728_reliable_mock_exam_sessions.sql'),
+  read('supabase/migrations/20260729_enforced_learner_tiers.sql'), read('src/services/adminService.js'),
   read('src/pages/MockExam.jsx'), read('vercel.json')
 ]);
 
@@ -26,5 +27,10 @@ assert.match(migration, /pmp_beta_entitlements/);
 assert.match(migration, /pmp_question_responses/);
 assert.match(migration, /pmp_admin_grant_beta_access/);
 assert.match(migration, /pmp_admin_revoke_beta_access/);
+assert.match(tierMigration, /pmp_admin_set_learner_tier/);
+assert.match(tierMigration, /access_level in \('trial', 'standard', 'premium'\)/);
+assert.match(tierMigration, /Mock Exams are available with Premium/);
+assert.match(tierMigration, /Your 25 Trial practice questions are complete/);
+assert.match(adminService, /pmp_admin_set_learner_tier/);
 assert.match(vercel, /"rewrites"/);
 console.log('Launch smoke checks passed.');
