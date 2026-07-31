@@ -22,6 +22,7 @@ const Admin = lazy(() => import('./pages/Admin.jsx'));
 const Settings = lazy(() => import('./pages/Settings.jsx'));
 const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import EntitlementGate from './components/EntitlementGate.jsx';
 
 /**
  * Main application component defining all routes.
@@ -45,15 +46,15 @@ function App() {
       <Route element={<ProtectedRoute />}>
       <Route element={<DashboardLayout />}>
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="modules" element={<Modules />} />
-        <Route path="modules/:id" element={<ModuleDetail />} />
-        <Route path="flashcards" element={<Flashcards />} />
-        <Route path="questions" element={<QuestionBank />} />
-        <Route path="quiz" element={<Quiz />} />
-        <Route path="mock-exam" element={<MockExam />} />
-        <Route path="mock-exams" element={<MockExam />} />
-        <Route path="analytics" element={<Analytics />} />
-        <Route path="certificates" element={<Certificates />} />
+        <Route path="modules" element={<EntitlementGate feature="modules"><Modules /></EntitlementGate>} />
+        <Route path="modules/:id" element={<EntitlementGate feature="modules"><ModuleDetail /></EntitlementGate>} />
+        <Route path="flashcards" element={<EntitlementGate feature="flashcards"><Flashcards /></EntitlementGate>} />
+        <Route path="questions" element={<EntitlementGate feature="questions"><QuestionBank /></EntitlementGate>} />
+        <Route path="quiz" element={<EntitlementGate feature="practice"><Quiz /></EntitlementGate>} />
+        <Route path="mock-exam" element={<EntitlementGate feature="mockExam"><MockExam /></EntitlementGate>} />
+        <Route path="mock-exams" element={<EntitlementGate feature="mockExam"><MockExam /></EntitlementGate>} />
+        <Route path="analytics" element={<EntitlementGate feature="analytics"><Analytics /></EntitlementGate>} />
+        <Route path="certificates" element={<EntitlementGate feature="certificates"><Certificates /></EntitlementGate>} />
         <Route path="profile" element={<Profile />} />
         <Route path="settings" element={<Settings />} />
       </Route>

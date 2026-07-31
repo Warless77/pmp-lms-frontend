@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { logout } from '../services/authService.js';
 import { BarChart3, BookOpen, Brain, CreditCard, FileQuestion, GraduationCap, LayoutDashboard, LogOut, Settings, Sparkles, UserRound } from 'lucide-react';
+import { useEntitlement } from '../context/EntitlementContext.jsx';
 
 /**
  * Sidebar for the dashboard. Uses NavLink to apply active styles. Adjust the
@@ -12,16 +13,17 @@ import { BarChart3, BookOpen, Brain, CreditCard, FileQuestion, GraduationCap, La
 function Sidebar() {
   const navigate = useNavigate();
   const { account } = useAuth();
+  const { can, entitlement, loading } = useEntitlement();
   const [signingOut, setSigningOut] = useState(false);
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/modules', label: 'Modules', icon: BookOpen },
-    { to: '/flashcards', label: 'Flashcards', icon: Brain },
-    { to: '/questions', label: 'Question Bank', icon: FileQuestion },
-    { to: '/quiz', label: 'Practice Quiz', icon: Sparkles },
-    { to: '/mock-exam', label: 'Mock Exam', icon: GraduationCap },
-    { to: '/analytics', label: 'Analytics', icon: BarChart3 },
-    { to: '/certificates', label: 'Certificates', icon: CreditCard },
+    ...(can('modules') ? [{ to: '/modules', label: 'Modules', icon: BookOpen }] : []),
+    ...(can('flashcards') ? [{ to: '/flashcards', label: 'Flashcards', icon: Brain }] : []),
+    ...(can('questions') ? [{ to: '/questions', label: 'Question Bank', icon: FileQuestion }] : []),
+    ...(can('practice') ? [{ to: '/quiz', label: 'Practice Quiz', icon: Sparkles }] : []),
+    ...(can('mockExam') ? [{ to: '/mock-exam', label: 'Mock Exam', icon: GraduationCap }] : []),
+    ...(can('analytics') ? [{ to: '/analytics', label: 'Analytics', icon: BarChart3 }] : []),
+    ...(can('certificates') ? [{ to: '/certificates', label: 'Certificates', icon: CreditCard }] : []),
     { to: '/profile', label: 'Profile', icon: UserRound },
     { to: '/settings', label: 'Settings', icon: Settings },
     ...(account?.profile?.role === 'admin' ? [{ to: '/admin', label: 'Admin', icon: Settings }] : [])
@@ -40,6 +42,7 @@ function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="brand"><span className="brand-mark">P</span>PMP Compass</div>
+      {!loading && <p className="nav-label" style={{ marginTop: '1rem' }}>{entitlement.tier === 'none' ? 'No active plan' : `${entitlement.tier} plan`}</p>}
       <p className="nav-label">Learning space</p>
       <nav className="sidebar-nav">
         {links.map((link) => (

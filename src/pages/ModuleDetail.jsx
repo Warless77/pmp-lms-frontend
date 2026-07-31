@@ -5,6 +5,7 @@ import ProgressBar from '../components/ProgressBar.jsx';
 import { getModules } from '../services/contentService.js';
 import { setModuleComplete } from '../services/learnerProgressService.js';
 import { useNavigate } from 'react-router-dom';
+import { useEntitlement } from '../context/EntitlementContext.jsx';
 
 /**
  * ModuleDetail shows information about a specific module based on the route
@@ -17,13 +18,15 @@ function ModuleDetail() {
   const [module, setModule] = useState(null);
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const { entitlement, loading } = useEntitlement();
   useEffect(() => {
     getModules().then((mods) => setModule(mods.find((m) => m.id === id)));
   }, [id]);
 
-  if (!module) {
+  if (loading || !module) {
     return <p>Loading…</p>;
   }
+  if (entitlement.tier === 'trial' && id !== 'people') return <div><PageHeader title="Module locked" subtitle="This module needs Standard or Premium access." /><p className="form-error">Your Trial includes the People Domain introduction only.</p></div>;
   const toggleComplete = async () => {
     const complete = module.progress !== 100;
     try {

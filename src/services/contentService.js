@@ -43,7 +43,10 @@ export async function getLearnerEntitlement() {
     practiceLimit: result?.practice_limit === null ? null : Number(result?.practice_limit || 0),
     questionBankEnabled: Boolean(result?.question_bank_enabled),
     mockExamEnabled: Boolean(result?.mock_exam_enabled),
-    aiCoachEnabled: Boolean(result?.ai_coach_enabled)
+    aiCoachEnabled: Boolean(result?.ai_coach_enabled),
+    modulesEnabled: Boolean(result?.modules_enabled),
+    analyticsEnabled: Boolean(result?.analytics_enabled),
+    certificatesEnabled: Boolean(result?.certificates_enabled)
   };
 }
 
