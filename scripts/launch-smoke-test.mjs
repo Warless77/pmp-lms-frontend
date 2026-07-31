@@ -2,11 +2,11 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
-const [app, contentService, migration, mockSessionMigration, tierMigration, tierHardeningMigration, adminService, mockExam, entitlementContext, gate, vercel] = await Promise.all([
+const [app, contentService, migration, mockSessionMigration, tierMigration, tierHardeningMigration, tierOperationsMigration, adminService, adminPage, mockExam, entitlementContext, gate, vercel] = await Promise.all([
   read('src/App.jsx'), read('src/services/contentService.js'),
   read('supabase/migrations/20260721_private_beta_launch_foundation.sql'),
   read('supabase/migrations/20260728_reliable_mock_exam_sessions.sql'),
-  read('supabase/migrations/20260729_enforced_learner_tiers.sql'), read('supabase/migrations/20260801_harden_learner_tier_control.sql'), read('src/services/adminService.js'),
+  read('supabase/migrations/20260729_enforced_learner_tiers.sql'), read('supabase/migrations/20260801_harden_learner_tier_control.sql'), read('supabase/migrations/20260801_tier_control_operations.sql'), read('src/services/adminService.js'), read('src/pages/Admin.jsx'),
   read('src/pages/MockExam.jsx'), read('src/context/EntitlementContext.jsx'), read('src/components/EntitlementGate.jsx'), read('vercel.json')
 ]);
 
@@ -37,7 +37,12 @@ assert.match(tierHardeningMigration, /modules_enabled boolean/);
 assert.match(tierHardeningMigration, /analytics_enabled boolean/);
 assert.match(tierHardeningMigration, /certificates_enabled boolean/);
 assert.match(tierHardeningMigration, /pmp_current_tier\(\) <> 'premium'/);
-assert.match(adminService, /pmp_admin_set_learner_tier/);
+assert.match(tierOperationsMigration, /pmp_entitlement_events/);
+assert.match(tierOperationsMigration, /pmp_admin_change_learner_tier/);
+assert.match(tierOperationsMigration, /pmp_admin_list_learner_entitlements/);
+assert.match(tierOperationsMigration, /An administrator cannot revoke their own access/);
+assert.match(adminService, /pmp_admin_change_learner_tier/);
+assert.match(adminPage, /Learner access register/);
 assert.match(entitlementContext, /getLearnerEntitlement/);
 assert.match(gate, /Upgrade your learning access/);
 assert.match(vercel, /"rewrites"/);

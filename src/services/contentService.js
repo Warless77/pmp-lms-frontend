@@ -41,6 +41,8 @@ export async function getLearnerEntitlement() {
     expiresAt: result?.expires_at || null,
     flashcardLimit: Number(result?.flashcard_limit || 0),
     practiceLimit: result?.practice_limit === null ? null : Number(result?.practice_limit || 0),
+    practiceUsed: Number(result?.practice_used || 0),
+    practiceRemaining: result?.practice_remaining === null ? null : Number(result?.practice_remaining || 0),
     questionBankEnabled: Boolean(result?.question_bank_enabled),
     mockExamEnabled: Boolean(result?.mock_exam_enabled),
     aiCoachEnabled: Boolean(result?.ai_coach_enabled),

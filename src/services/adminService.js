@@ -21,13 +21,20 @@ export async function setQuestionReview(questionId, status, publish = false) {
   if (error) throw error;
 }
 
-export async function setLearnerTier(email, tier, expiresAt = null) {
-  const { error } = await requireSupabase().rpc('pmp_admin_set_learner_tier', {
+export async function setLearnerTier(email, tier, expiresAt = null, reason = '') {
+  const { error } = await requireSupabase().rpc('pmp_admin_change_learner_tier', {
     p_email: email,
     p_tier: tier,
-    p_expires_at: expiresAt
+    p_expires_at: expiresAt,
+    p_reason: reason
   });
   if (error) throw error;
+}
+
+export async function getLearnerEntitlements() {
+  const { data, error } = await requireSupabase().rpc('pmp_admin_list_learner_entitlements', { p_limit: 100 });
+  if (error) throw error;
+  return data || [];
 }
 
 export async function revokeBetaAccess(email) {

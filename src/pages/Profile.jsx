@@ -21,6 +21,7 @@ function Profile() {
           <p><strong>Email:</strong> {user.email}</p>
           <p><strong>Plan:</strong> {entitlement.tier === 'none' ? 'No active plan' : `${entitlement.tier[0].toUpperCase()}${entitlement.tier.slice(1)}`}</p>
           {entitlement.expiresAt && <p><strong>Plan expiry:</strong> {new Date(entitlement.expiresAt).toLocaleDateString()}</p>}
+          {entitlement.practiceLimit !== null && <p><strong>Trial practice:</strong> {entitlement.practiceRemaining} of {entitlement.practiceLimit} answers remaining</p>}
           <p><strong>Exam Target Date:</strong> {user.user_metadata?.target_exam_date || 'Not set'}</p>
           <p><strong>Account status:</strong> Active</p>
         </div>

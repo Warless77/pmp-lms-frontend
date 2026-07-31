@@ -4,7 +4,7 @@ import { getLearnerEntitlement } from '../services/contentService.js';
 const EntitlementContext = createContext(null);
 
 const noAccess = {
-  tier: 'none', expiresAt: null, flashcardLimit: 0, practiceLimit: 0,
+  tier: 'none', expiresAt: null, flashcardLimit: 0, practiceLimit: 0, practiceUsed: 0, practiceRemaining: 0,
   questionBankEnabled: false, mockExamEnabled: false, aiCoachEnabled: false,
   modulesEnabled: false, analyticsEnabled: false, certificatesEnabled: false
 };
@@ -26,7 +26,7 @@ export function EntitlementProvider({ children }) {
     const rules = {
       modules: entitlement.modulesEnabled,
       flashcards: entitlement.flashcardLimit > 0,
-      practice: entitlement.practiceLimit === null || entitlement.practiceLimit > 0,
+      practice: entitlement.practiceLimit === null || entitlement.practiceRemaining > 0,
       questions: entitlement.questionBankEnabled,
       mockExam: entitlement.mockExamEnabled,
       analytics: entitlement.analyticsEnabled,
