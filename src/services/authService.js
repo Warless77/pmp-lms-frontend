@@ -1,29 +1,41 @@
-/**
- * Placeholder authentication service. Replace the stubbed implementations with
- * real API calls once authentication back‑end is available.
- */
+import { requireSupabase } from './supabaseClient.js';
 
-export function login({ email, password }) {
-  return new Promise((resolve) => {
-    // Simulate network delay
-    setTimeout(() => {
-      resolve({ user: { id: 1, name: 'Demo User', email }, token: 'demo-token' });
-    }, 500);
+export async function login({ email, password }) {
+  const { data, error } = await requireSupabase().auth.signInWithPassword({
+    email: email.trim().toLowerCase(), password
   });
+  if (error) throw error;
+  return data;
 }
 
-export function register({ name, email, password, targetDate, plan }) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ user: { id: 2, name, email }, token: 'demo-token' });
-    }, 500);
+export async function register({ name, email, password, targetDate }) {
+  const { data, error } = await requireSupabase().auth.signUp({
+    email: email.trim().toLowerCase(), password,
+    options: { data: { full_name: name.trim(), target_exam_date: targetDate || null } }
   });
+  if (error) throw error;
+  return data;
 }
 
-export function logout() {
-  return Promise.resolve();
+export async function logout() {
+  const { error } = await requireSupabase().auth.signOut();
+  if (error) throw error;
 }
 
-export function getCurrentUser() {
-  return Promise.resolve({ user: { id: 1, name: 'Demo User', email: 'demo@pmplms.com' } });
+export async function getCurrentUser() {
+  const client = requireSupabase();
+  const { data: { user }, error: userError } = await client.auth.getUser();
+  if (userError) throw userError;
+  if (!user) return null;
+  const { data: profile, error: profileError } = await client
+    .from('profiles').select('*').eq('id', user.id).single();
+  if (profileError) throw profileError;
+  return { user, profile };
+}
+
+export async function requestPasswordReset(email) {
+  const { error } = await requireSupabase().auth.resetPasswordForEmail(
+    email.trim().toLowerCase(), { redirectTo: `${window.location.origin}/settings` }
+  );
+  if (error) throw error;
 }

@@ -5,8 +5,8 @@ import React from 'react';
  */
 function ExamTimer({ minutes, seconds }) {
   return (
-    <div style={{ padding: '0.5rem 1rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '4px', display: 'inline-block' }}>
-      <span style={{ fontWeight: 700 }}>{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}</span>
+    <div className="exam-timer" aria-label={`${minutes} minutes ${seconds} seconds remaining`}>
+      <span>Time left</span><strong>{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}</strong>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ModuleCard from '../components/ModuleCard.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import { getModules } from '../services/contentService.js';
+import { useEntitlement } from '../context/EntitlementContext.jsx';
 
 /**
  * Modules page displays all learning modules available in the LMS. Each module
@@ -9,6 +10,7 @@ import { getModules } from '../services/contentService.js';
  */
 function Modules() {
   const [modules, setModules] = useState([]);
+  const { entitlement } = useEntitlement();
   useEffect(() => {
     getModules().then(setModules);
   }, []);
@@ -16,7 +18,7 @@ function Modules() {
     <div>
       <PageHeader title="Modules" subtitle="Browse all study modules" />
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-        {modules.map((mod) => (
+        {(entitlement.tier === 'trial' ? modules.filter((mod) => mod.id === 'people') : modules).map((mod) => (
           <ModuleCard key={mod.id} module={mod} />
         ))}
       </div>

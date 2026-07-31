@@ -9,14 +9,13 @@ import { Link } from 'react-router-dom';
  */
 function ModuleCard({ module }) {
   return (
-    <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '1rem', flex: 1 }}>
-      <h3 style={{ marginTop: 0 }}>{module.title}</h3>
-      <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem' }}>{module.description}</p>
-      <p style={{ fontSize: '0.75rem', marginTop: '0.5rem' }}>Lessons: {module.lessons}</p>
+    <div className="module-card">
+      <h3>{module.title}</h3><p>{module.description}</p>
+      <div className="module-meta"><span>{module.lessons} lessons</span><span>{module.progress || 0}% complete</span></div>
       <ProgressBar progress={module.progress} />
       <Link
         to={`/modules/${module.id}`}
-        style={{ display: 'inline-block', marginTop: '1rem', padding: '0.5rem 1rem', backgroundColor: 'var(--color-primary)', color: '#fff', borderRadius: '4px' }}
+        className="button-primary" style={{ marginTop: '1rem' }}
       >
         Continue
       </Link>

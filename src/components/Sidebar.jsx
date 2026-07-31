@@ -1,5 +1,9 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
+import { logout } from '../services/authService.js';
+import { BarChart3, BookOpen, Brain, CreditCard, FileQuestion, GraduationCap, LayoutDashboard, LogOut, Settings, Sparkles, UserRound } from 'lucide-react';
+import { useEntitlement } from '../context/EntitlementContext.jsx';
 
 /**
  * Sidebar for the dashboard. Uses NavLink to apply active styles. Adjust the
@@ -7,39 +11,58 @@ import { NavLink } from 'react-router-dom';
  * collapses on smaller screens in a real implementation.
  */
 function Sidebar() {
+  const navigate = useNavigate();
+  const { account } = useAuth();
+  const { can, entitlement, loading } = useEntitlement();
+  const [signingOut, setSigningOut] = useState(false);
   const links = [
-    { to: '/dashboard', label: 'Dashboard' },
-    { to: '/modules', label: 'Modules' },
-    { to: '/flashcards', label: 'Flashcards' },
-    { to: '/questions', label: 'Question Bank' },
-    { to: '/quiz', label: 'Quiz' },
-    { to: '/mock-exam', label: 'Mock Exams' },
-    { to: '/analytics', label: 'Analytics' },
-    { to: '/certificates', label: 'Certificates' },
-    { to: '/profile', label: 'Profile' },
-    { to: '/settings', label: 'Settings' },
-    { to: '/admin', label: 'Admin' }
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    ...(can('modules') ? [{ to: '/modules', label: 'Modules', icon: BookOpen }] : []),
+    ...(can('flashcards') ? [{ to: '/flashcards', label: 'Flashcards', icon: Brain }] : []),
+    ...(can('questions') ? [{ to: '/questions', label: 'Question Bank', icon: FileQuestion }] : []),
+    ...(can('practice') ? [{ to: '/quiz', label: 'Practice Quiz', icon: Sparkles }] : []),
+    ...(can('mockExam') ? [{ to: '/mock-exam', label: 'Mock Exam', icon: GraduationCap }] : []),
+    ...(can('analytics') ? [{ to: '/analytics', label: 'Analytics', icon: BarChart3 }] : []),
+    ...(can('certificates') ? [{ to: '/certificates', label: 'Certificates', icon: CreditCard }] : []),
+    { to: '/profile', label: 'Profile', icon: UserRound },
+    { to: '/settings', label: 'Settings', icon: Settings },
+    ...(account?.profile?.role === 'admin' ? [{ to: '/admin', label: 'Admin', icon: Settings }] : [])
   ];
 
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await logout();
+      navigate('/login', { replace: true });
+    } finally {
+      setSigningOut(false);
+    }
+  };
+
   return (
-    <aside style={{ width: '220px', backgroundColor: 'var(--color-surface)', borderRight: '1px solid var(--color-border)', padding: '1rem' }}>
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+    <aside className="sidebar">
+      <div className="brand"><span className="brand-mark">P</span>PMP Compass</div>
+      {!loading && <p className="nav-label" style={{ marginTop: '1rem' }}>{entitlement.tier === 'none' ? 'No active plan' : `${entitlement.tier} plan`}</p>}
+      <p className="nav-label">Learning space</p>
+      <nav className="sidebar-nav">
         {links.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
-            style={({ isActive }) => ({
-              padding: '0.5rem 1rem',
-              borderRadius: '4px',
-              backgroundColor: isActive ? 'var(--color-primary)' : 'transparent',
-              color: isActive ? '#fff' : 'inherit',
-              textDecoration: 'none'
-            })}
+            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
           >
-            {link.label}
+            <link.icon size={17} strokeWidth={2.1} />{link.label}
           </NavLink>
         ))}
       </nav>
+      <div className="sidebar-bottom"><button
+        type="button"
+        onClick={handleSignOut}
+        disabled={signingOut}
+        className="signout-button"
+      >
+        <LogOut size={17} />{signingOut ? 'Signing out…' : 'Sign out'}
+      </button></div>
     </aside>
   );
 }

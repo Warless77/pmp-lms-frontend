@@ -6,10 +6,9 @@ import React from 'react';
  */
 function PageHeader({ title, subtitle, children }) {
   return (
-    <div style={{ marginBottom: '1.5rem' }}>
-      <h2 style={{ margin: 0 }}>{title}</h2>
-      {subtitle && <p style={{ color: 'var(--color-muted)' }}>{subtitle}</p>}
-      {children && <div style={{ marginTop: '0.5rem' }}>{children}</div>}
+    <div className="page-header">
+      <div><span className="page-eyebrow">PMP Learning Hub</span><h1>{title}</h1>{subtitle && <p>{subtitle}</p>}</div>
+      {children && <div>{children}</div>}
     </div>
   );
 }

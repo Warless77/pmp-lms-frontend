@@ -8,8 +8,10 @@ import { register as registerUser } from '../services/authService.js';
  */
 function Register() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', targetDate: '', plan: 'trial' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', targetDate: '' });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,10 +20,15 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setMessage('');
     setLoading(true);
     try {
-      await registerUser(form);
-      navigate('/dashboard');
+      const result = await registerUser(form);
+      if (result.session) navigate('/dashboard');
+      else setMessage('Check your email to confirm your private beta account.');
+    } catch (err) {
+      setError(err.message || 'Unable to create your account.');
     } finally {
       setLoading(false);
     }
@@ -79,23 +86,11 @@ function Register() {
             style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: '4px' }}
           />
         </div>
-        <div>
-          <label htmlFor="plan">Plan</label>
-          <select
-            id="plan"
-            name="plan"
-            value={form.plan}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: '4px' }}
-          >
-            <option value="trial">Trial</option>
-            <option value="standard">Standard</option>
-            <option value="premium">Premium</option>
-          </select>
-        </div>
         <button type="submit" disabled={loading} style={{ padding: '0.75rem', backgroundColor: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
           {loading ? 'Registering…' : 'Register'}
         </button>
+        {error && <p role="alert" className="form-error">{error}</p>}
+        {message && <p role="status" className="form-success">{message}</p>}
       </form>
     </div>
   );

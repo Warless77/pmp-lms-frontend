@@ -3,6 +3,9 @@ import { useParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
 import { getModules } from '../services/contentService.js';
+import { setModuleComplete } from '../services/learnerProgressService.js';
+import { useNavigate } from 'react-router-dom';
+import { useEntitlement } from '../context/EntitlementContext.jsx';
 
 /**
  * ModuleDetail shows information about a specific module based on the route
@@ -13,13 +16,27 @@ import { getModules } from '../services/contentService.js';
 function ModuleDetail() {
   const { id } = useParams();
   const [module, setModule] = useState(null);
+  const [message, setMessage] = useState('');
+  const navigate = useNavigate();
+  const { entitlement, loading } = useEntitlement();
   useEffect(() => {
     getModules().then((mods) => setModule(mods.find((m) => m.id === id)));
   }, [id]);
 
-  if (!module) {
+  if (loading || !module) {
     return <p>Loading…</p>;
   }
+  if (entitlement.tier === 'trial' && id !== 'people') return <div><PageHeader title="Module locked" subtitle="This module needs Standard or Premium access." /><p className="form-error">Your Trial includes the People Domain introduction only.</p></div>;
+  const toggleComplete = async () => {
+    const complete = module.progress !== 100;
+    try {
+      await setModuleComplete(module.id, complete);
+      setModule((current) => ({ ...current, progress: complete ? 100 : 0 }));
+      setMessage(complete ? 'Module completion saved to your account.' : 'Module completion removed from your account.');
+    } catch {
+      setMessage('We could not save your progress. Please try again.');
+    }
+  };
 
   return (
     <div>
@@ -37,11 +54,16 @@ function ModuleDetail() {
         </ul>
       </section>
       <section style={{ marginBottom: '2rem' }}>
-        <h4>Lesson Content</h4>
+        <h4>Study guide</h4>
         <div style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '1rem' }}>
-          <p>Video and PDF content will appear here.</p>
+          <p>Use the practice questions to apply this domain. Source materials can be added by an administrator as downloadable lessons.</p>
         </div>
       </section>
+      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <button type="button" onClick={toggleComplete} style={{ padding: '0.65rem 1rem', background: module.progress === 100 ? 'var(--color-secondary)' : 'var(--color-primary)', color: '#fff', border: 0, borderRadius: '5px', cursor: 'pointer' }}>{module.progress === 100 ? 'Mark as not completed' : 'Mark module complete'}</button>
+        <button type="button" onClick={() => navigate('/questions')} style={{ padding: '0.65rem 1rem', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '5px', cursor: 'pointer' }}>Practise questions</button>
+      </div>
+      {message && <p role="status" className="form-success">{message}</p>}
     </div>
   );
 }
