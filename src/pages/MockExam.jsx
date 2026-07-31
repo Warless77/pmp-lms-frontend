@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import PageHeader from '../components/PageHeader.jsx';
 import ExamTimer from '../components/ExamTimer.jsx';
 import QuestionNavigator from '../components/QuestionNavigator.jsx';
-import { startMockExam, submitMockExamSession } from '../services/contentService.js';
+import UpgradeGate from '../components/UpgradeGate.jsx';
+import { startMockExam, submitMockExamSession, getLearnerEntitlement } from '../services/contentService.js';
 
 const PMP_DURATION_SECONDS = 230 * 60;
 
@@ -16,6 +17,15 @@ function MockExam() {
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [entitlement, setEntitlement] = useState(null);
+  const [entitlementLoading, setEntitlementLoading] = useState(true);
+
+  useEffect(() => {
+    getLearnerEntitlement()
+      .then(setEntitlement)
+      .catch(() => setEntitlement(null))
+      .finally(() => setEntitlementLoading(false));
+  }, []);
 
   useEffect(() => {
     if (phase !== 'exam') return undefined;
@@ -49,6 +59,20 @@ function MockExam() {
 
   const reset = () => { setPhase('welcome'); setQuestions([]); setSessionId(null); setCurrent(0); setAnswers({}); setResult(null); setSecondsRemaining(PMP_DURATION_SECONDS); setError(''); };
   const answered = Object.keys(answers).map(Number);
+
+  if (entitlementLoading) return <div><PageHeader title="Mock Exam" subtitle="Focused, timed PMP practice." /><p className="route-status">Checking your plan…</p></div>;
+
+  if (entitlement && !entitlement.mockExamEnabled) {
+    return <div>
+      <PageHeader title="Mock Exam" subtitle="Focused, timed PMP practice." />
+      <UpgradeGate
+        feature="Mock Exam"
+        requiredTier="Premium"
+        currentTier={entitlement.tier}
+        description="Full 180-question, 230-minute timed simulations with server-graded results and a question-by-question review are part of the Premium plan."
+      />
+    </div>;
+  }
 
   if (phase === 'welcome') return <div><PageHeader title="Mock Exam" subtitle="Focused, timed PMP practice." />{error && <p role="alert" className="form-error">{error}</p>}<div className="surface-card exam-welcome"><span className="page-eyebrow">PMP-style simulation</span><h2>Build your exam confidence.</h2><p>Your 180-question exam is selected randomly and balanced across People, Process, and Business Environment. Unanswered questions count as incorrect, and your timed-out attempt is saved automatically.</p><div className="exam-metrics"><div className="exam-metric"><strong>180</strong><span>questions assigned</span></div><div className="exam-metric"><strong>230 min</strong><span>time allowance</span></div><div className="exam-metric"><strong>Private</strong><span>results saved securely</span></div></div><button className="button-primary" type="button" disabled={submitting} onClick={start}>{submitting ? 'Preparing your exam…' : 'Start mock exam'}</button></div></div>;
   if (phase === 'results') return <div><PageHeader title="Mock exam complete" subtitle="Your result and question-by-question review." /><div className="surface-card result-card"><span className="page-eyebrow">{result?.expired ? 'Time expired — attempt saved' : 'Assessment result'}</span><div className="result-score">{result?.score || 0}<span>/ {result?.total || 180} correct</span></div><p>Your result has been saved to your learner account. Use the explanations below to direct your next study session.</p><section aria-label="Answer review">{(result?.review || []).map((item, index) => { const question = questions.find((q) => q.id === item.question_id); const selected = item.selected_index; return <article className={`review-card ${item.is_correct ? 'correct' : 'incorrect'}`} key={item.question_id}><strong className="review-status">Question {index + 1} · {item.is_correct ? 'Correct' : 'Incorrect'}</strong><p style={{ marginTop: '.5rem', fontWeight: 700 }}>{question?.text}</p><p>Your answer: {selected === null || selected === undefined ? 'Not answered' : `${String.fromCharCode(65 + selected)}. ${question?.options?.[selected] || ''}`}</p><p>Correct answer: {String.fromCharCode(65 + item.correct_index)}. {question?.options?.[item.correct_index] || ''}</p>{item.explanation && <p style={{ marginBottom: 0 }}><strong>Explanation:</strong> {item.explanation}</p>}</article>; })}</section><button className="button-primary" type="button" onClick={reset} style={{ marginTop: '1.2rem' }}>Start a new attempt</button></div></div>;
