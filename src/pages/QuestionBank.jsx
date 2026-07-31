@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
-import { getQuestions } from '../services/contentService.js';
+import UpgradeGate from '../components/UpgradeGate.jsx';
+import { getQuestions, getLearnerEntitlement } from '../services/contentService.js';
 
 const titleCaseDomain = (domain) => (domain || 'general_pmp').replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 const PAGE_SIZE = 24;
@@ -13,10 +14,20 @@ function QuestionBank() {
   const [domain, setDomain] = useState('all');
   const [error, setError] = useState('');
   const [page, setPage] = useState(0);
+  const [entitlement, setEntitlement] = useState(null);
+  const [entitlementLoading, setEntitlementLoading] = useState(true);
 
   useEffect(() => {
-    getQuestions(2100).then(setQuestions).catch(() => setError('The question bank could not be loaded. Please try again shortly.'));
+    getLearnerEntitlement()
+      .then(setEntitlement)
+      .catch(() => setEntitlement(null))
+      .finally(() => setEntitlementLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (entitlement && !entitlement.questionBankEnabled) return;
+    getQuestions(2100).then(setQuestions).catch(() => setError('The question bank could not be loaded. Please try again shortly.'));
+  }, [entitlement]);
 
   const domains = useMemo(() => [...new Set(questions.map((item) => item.domain).filter(Boolean))], [questions]);
   const filtered = questions.filter((question) =>
@@ -28,6 +39,20 @@ function QuestionBank() {
 
   const updateQuery = (value) => { setQuery(value); setPage(0); };
   const updateDomain = (value) => { setDomain(value); setPage(0); };
+
+  if (entitlementLoading) return <div><PageHeader title="Question Bank" subtitle="Loading your practice questions" /><p className="route-status">Checking your plan…</p></div>;
+
+  if (entitlement && !entitlement.questionBankEnabled) {
+    return <div>
+      <PageHeader title="Question Bank" subtitle="Search and practice PMP questions by domain" />
+      <UpgradeGate
+        feature="Question Bank"
+        requiredTier="Standard"
+        currentTier={entitlement.tier}
+        description="Full access to the searchable PMP question bank, filterable by domain, is included from the Standard plan up."
+      />
+    </div>;
+  }
 
   return (
     <div>
