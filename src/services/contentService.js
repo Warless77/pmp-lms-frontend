@@ -1,18 +1,27 @@
-import { modules, flashcards, sampleQuestions } from '../data/mockData.js';
+import { supabase } from '../lib/supabase.js';
 
-/**
- * Placeholder content service returning mock data. This layer abstracts data
- * retrieval and can later be extended to call REST or GraphQL APIs.
- */
+export async function getModules() {
+  const { data, error } = await supabase
+    .from('modules')
+    .select('id, slug, title, domain, description, position, is_published, required_plan')
+    .eq('is_published', true)
+    .order('position', { ascending: true });
 
-export function getModules() {
-  return Promise.resolve(modules);
+  if (error) throw error;
+  return data || [];
 }
 
-export function getQuestions() {
-  return Promise.resolve(sampleQuestions);
+export async function getQuestions(limit = 50) {
+  const { data, error } = await supabase.rpc('pmp_get_learner_questions', { p_limit: limit });
+  if (error) throw error;
+  return data || [];
 }
 
-export function getFlashcards() {
-  return Promise.resolve(flashcards);
+export async function getFlashcards(limit = 20, domain = null) {
+  const { data, error } = await supabase.rpc('pmp_get_flashcards', {
+    p_limit: limit,
+    p_domain: domain,
+  });
+  if (error) throw error;
+  return data || [];
 }
