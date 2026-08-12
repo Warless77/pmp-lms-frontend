@@ -1,29 +1,38 @@
-/**
- * Placeholder authentication service. Replace the stubbed implementations with
- * real API calls once authentication back‑end is available.
- */
+import { supabase } from '../lib/supabase.js';
 
-export function login({ email, password }) {
-  return new Promise((resolve) => {
-    // Simulate network delay
-    setTimeout(() => {
-      resolve({ user: { id: 1, name: 'Demo User', email }, token: 'demo-token' });
-    }, 500);
+export async function login({ email, password }) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+  if (error) throw error;
+  return { user: data.user, session: data.session };
+}
+
+export async function register({ name, email, password, targetDate, plan = 'trial' }) {
+  const { data, error } = await supabase.auth.signUp({
+    email: email.trim(),
+    password,
+    options: {
+      data: {
+        full_name: name.trim(),
+        target_exam_date: targetDate || null,
+        plan,
+      },
+    },
   });
+  if (error) throw error;
+  return { user: data.user, session: data.session };
 }
 
-export function register({ name, email, password, targetDate, plan }) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ user: { id: 2, name, email }, token: 'demo-token' });
-    }, 500);
-  });
+export async function logout() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 }
 
-export function logout() {
-  return Promise.resolve();
+export async function getCurrentUser() {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) throw error;
+  return data.user;
 }
 
-export function getCurrentUser() {
-  return Promise.resolve({ user: { id: 1, name: 'Demo User', email: 'demo@pmplms.com' } });
+export function onAuthStateChange(callback) {
+  return supabase.auth.onAuthStateChange(callback);
 }
