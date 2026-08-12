@@ -2,8 +2,8 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MarketingLayout from './layouts/MarketingLayout.jsx';
 import DashboardLayout from './layouts/DashboardLayout.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
-// Page components
 import Landing from './pages/Landing.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
@@ -22,17 +22,9 @@ import Admin from './pages/Admin.jsx';
 import Settings from './pages/Settings.jsx';
 import NotFound from './pages/NotFound.jsx';
 
-/**
- * Main application component defining all routes.
- *
- * Routes are grouped under two primary layouts: MarketingLayout for public pages and
- * DashboardLayout for authenticated sections of the LMS. The catch‑all route renders
- * a simple 404 page for unknown paths.
- */
 function App() {
   return (
     <Routes>
-      {/* Marketing routes */}
       <Route element={<MarketingLayout />}>
         <Route index element={<Landing />} />
         <Route path="login" element={<Login />} />
@@ -40,8 +32,7 @@ function App() {
         <Route path="pricing" element={<Pricing />} />
       </Route>
 
-      {/* Dashboard routes */}
-      <Route element={<DashboardLayout />}>
+      <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="modules" element={<Modules />} />
         <Route path="modules/:id" element={<ModuleDetail />} />
@@ -56,7 +47,6 @@ function App() {
         <Route path="settings" element={<Settings />} />
       </Route>
 
-      {/* Fallback for all other routes */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
