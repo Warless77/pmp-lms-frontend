@@ -2,8 +2,13 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL || '';
-const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || '';
+const supabaseUrl =
+  process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL || '';
+const supabasePublishableKey =
+  process.env.SUPABASE_PUBLISHABLE_KEY ||
+  process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.REACT_APP_SUPABASE_ANON_KEY ||
+  '';
 
 module.exports = {
   mode: 'production',
@@ -34,6 +39,7 @@ module.exports = {
       'process.env.SUPABASE_URL': JSON.stringify(supabaseUrl),
       'process.env.SUPABASE_PUBLISHABLE_KEY': JSON.stringify(supabasePublishableKey),
       'process.env.REACT_APP_SUPABASE_URL': JSON.stringify(supabaseUrl),
+      'process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(supabasePublishableKey),
       'process.env.REACT_APP_SUPABASE_ANON_KEY': JSON.stringify(supabasePublishableKey)
     }),
     new HtmlWebpackPlugin({ template: './public/index.html', filename: 'index.html' })
