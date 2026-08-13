@@ -19,6 +19,7 @@ const Certificates = lazy(() => import('./pages/Certificates.jsx'));
 const Profile = lazy(() => import('./pages/Profile.jsx'));
 const Admin = lazy(() => import('./pages/Admin.jsx'));
 const Settings = lazy(() => import('./pages/Settings.jsx'));
+const AICoach = lazy(() => import('./pages/AICoach.jsx'));
 const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import EntitlementGate from './components/EntitlementGate.jsx';
@@ -45,6 +46,7 @@ function App() {
           <Route path="mock-exams" element={<EntitlementGate feature="mockExam"><MockExam /></EntitlementGate>} />
           <Route path="analytics" element={<EntitlementGate feature="analytics"><Analytics /></EntitlementGate>} />
           <Route path="certificates" element={<EntitlementGate feature="certificates"><Certificates /></EntitlementGate>} />
+          <Route path="ai-coach" element={<EntitlementGate feature="aiCoach"><AICoach /></EntitlementGate>} />
           <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
         </Route>
