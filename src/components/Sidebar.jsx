@@ -1,9 +1,13 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { logout } from '../services/authService.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 function Sidebar() {
   const navigate = useNavigate();
+  const { account } = useAuth();
+  const isAdmin = account?.profile?.role === 'admin';
+
   const links = [
     { to: '/dashboard', label: 'Dashboard' },
     { to: '/modules', label: 'Modules' },
@@ -16,7 +20,7 @@ function Sidebar() {
     { to: '/certificates', label: 'Certificates' },
     { to: '/profile', label: 'Profile' },
     { to: '/settings', label: 'Settings' },
-    { to: '/admin', label: 'Admin' }
+    ...(isAdmin ? [{ to: '/admin', label: 'Admin' }] : [])
   ];
 
   const handleLogout = async () => {
