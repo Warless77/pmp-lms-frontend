@@ -8,7 +8,8 @@ const featureText = {
   analytics: 'Analytics is included with Standard and Premium.',
   certificates: 'Certificates are included with Standard and Premium.',
   modules: 'Learning modules are included with an active plan.',
-  flashcards: 'Flashcards require an active learning plan.'
+  flashcards: 'Flashcards require an active learning plan.',
+  aiCoach: 'AI Coach is available on plans that include AI-powered PMP coaching.'
 };
 
 export default function EntitlementGate({ feature, children }) {
