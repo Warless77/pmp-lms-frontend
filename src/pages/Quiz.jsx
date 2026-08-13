@@ -1,117 +1,61 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader.jsx';
-import { getQuestions } from '../services/contentService.js';
+import { getPracticeQuestions, gradePracticeAnswer } from '../services/contentService.js';
+import { recordAnswer } from '../services/learnerProgressService.js';
 
-/**
- * Quiz page presents a series of questions with multiple choice answers. It
- * tracks the score and provides feedback after each selection. Users can
- * restart the quiz to practise again.
- */
 function Quiz() {
-  const [questions, setQuestions] = useState([]);
-  const [index, setIndex] = useState(0);
-  const [selected, setSelected] = useState(null);
-  const [score, setScore] = useState(0);
-  const [showExplanation, setShowExplanation] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [questions, setQuestions] = useState([]); const [index, setIndex] = useState(0);
+  const [selected, setSelected] = useState(null); const [score, setScore] = useState(0);
+  const [complete, setComplete] = useState(false); const [error, setError] = useState(''); const [review, setReview] = useState(null);
 
   useEffect(() => {
-    getQuestions().then(setQuestions);
-  }, []);
+    setError('');
+    getPracticeQuestions(20, location.state?.questionId).then(setQuestions).catch((e) => setError(e?.message || 'The quiz could not be loaded.'));
+  }, [location.state]);
 
-  if (!questions.length) {
-    return <p>Loading quiz…</p>;
-  }
-
+  if (error) return <p role="alert" className="form-error">{error}</p>;
+  if (!questions.length) return <p>Loading quiz…</p>;
   const question = questions[index];
 
-  const handleSelect = (i) => {
+  const select = async (optionIndex) => {
     if (selected !== null) return;
-    setSelected(i);
-    setShowExplanation(true);
-    if (i === question.correctIndex) {
-      setScore((s) => s + 1);
+    setSelected(optionIndex); setError('');
+    try {
+      const result = await gradePracticeAnswer(question.id, optionIndex);
+      setReview(result); if (result.isCorrect) setScore((value) => value + 1);
+      recordAnswer(question.id, result.isCorrect);
+    } catch (gradeError) {
+      setSelected(null); setError(gradeError?.message || 'We could not grade that answer. Please try again.');
     }
   };
 
-  const handleNext = () => {
-    setSelected(null);
-    setShowExplanation(false);
-    if (index + 1 < questions.length) {
-      setIndex((i) => i + 1);
-    } else {
-      // Quiz complete
-    }
+  const next = () => {
+    if (index + 1 === questions.length) setComplete(true);
+    else { setIndex((value) => value + 1); setSelected(null); setReview(null); }
   };
 
-  const handleRestart = () => {
-    setIndex(0);
-    setSelected(null);
-    setScore(0);
-    setShowExplanation(false);
+  const restart = () => {
+    setIndex(0); setSelected(null); setReview(null); setScore(0); setComplete(false); setQuestions([]); setError('');
+    getPracticeQuestions(20).then(setQuestions).catch((e) => setError(e?.message || 'The quiz could not be loaded.'));
+    navigate('/quiz', { replace: true });
   };
 
-  const completed = index === questions.length - 1 && selected !== null;
+  if (complete) return <div><PageHeader title="Practice complete" subtitle="A focused review builds exam confidence." /><div className="surface-card result-card"><span className="page-eyebrow">Practice result</span><div className="result-score">{score}<span>/ {questions.length} correct</span></div><p>Your server-graded result has been recorded for your learning analytics.</p><button className="button-primary" type="button" onClick={restart}>Practise again</button></div></div>;
 
-  return (
-    <div>
-      <PageHeader title="Quiz" subtitle="Test your knowledge" />
-      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-        <p>
-          Question {index + 1} of {questions.length}
-        </p>
-        <h4>{question.text}</h4>
-        <ul style={{ paddingLeft: 0, listStyle: 'none' }}>
-          {question.options.map((opt, i) => {
-            const isCorrect = i === question.correctIndex;
-            const isSelected = i === selected;
-            let bg = 'var(--color-surface)';
-            if (selected !== null) {
-              if (isSelected && isCorrect) bg = 'var(--color-success)';
-              else if (isSelected && !isCorrect) bg = 'var(--color-error)';
-              else if (isCorrect) bg = 'var(--color-success)';
-            }
-            return (
-              <li key={i} style={{ marginBottom: '0.5rem' }}>
-                <button
-                  onClick={() => handleSelect(i)}
-                  disabled={selected !== null}
-                  style={{ width: '100%', textAlign: 'left', padding: '0.5rem 1rem', border: '1px solid var(--color-border)', borderRadius: '4px', backgroundColor: bg, cursor: selected === null ? 'pointer' : 'default' }}
-                >
-                  {opt}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-        {showExplanation && (
-          <div style={{ marginTop: '1rem' }}>
-            <p>{question.explanation}</p>
-          </div>
-        )}
-        <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between' }}>
-          {!completed ? (
-            <button
-              onClick={handleNext}
-              disabled={selected === null}
-              style={{ padding: '0.5rem 1rem', backgroundColor: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: '4px', cursor: selected === null ? 'default' : 'pointer' }}
-            >
-              Next
-            </button>
-          ) : (
-            <button
-              onClick={handleRestart}
-              style={{ padding: '0.5rem 1rem', backgroundColor: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: '4px' }}
-            >
-              Restart Quiz
-            </button>
-          )}
-          <span>
-            Score: {score} / {questions.length}
-          </span>
-        </div>
+  return <div><PageHeader title="Practice Quiz" subtitle={`Question ${index + 1} of ${questions.length}`} />
+    <div style={{ maxWidth: '820px', margin: '0 auto' }}>
+      <div className="surface-card exam-topbar"><div className="exam-progress"><div className="exam-progress-label"><span>Quiz progress</span><span>{index + 1}/{questions.length}</span></div><div className="exam-progress-track"><div className="exam-progress-bar" style={{ width: `${((index + 1) / questions.length) * 100}%` }} /></div></div><strong style={{ color: 'var(--color-primary)', fontSize: '.88rem' }}>Score: {score}</strong></div>
+      {error && <p role="alert" className="form-error">{error}</p>}
+      <div className="surface-card exam-question"><p className="question-kicker">Choose the best answer</p><h2 className="question-text">{question.text}</h2>
+        <div className="answer-list">{question.options.map((option, optionIndex) => { const reviewed = review !== null; const chosen = optionIndex === selected; const status = reviewed && chosen ? (review.isCorrect ? 'correct' : 'incorrect') : chosen ? 'selected' : ''; return <button key={optionIndex} className={`answer-option ${status}`} type="button" onClick={() => select(optionIndex)} disabled={reviewed}><span className="answer-letter">{String.fromCharCode(65 + optionIndex)}</span><span>{option}</span></button>; })}</div>
+        {review && <div className={`review-card ${review.isCorrect ? 'correct' : 'incorrect'}`}><strong className="review-status">{review.isCorrect ? 'Correct answer' : 'Review this concept'}</strong><p style={{ margin: '.45rem 0 0' }}>{review.explanation}</p></div>}
+        <div className="question-actions"><button className="button-secondary" type="button" onClick={() => navigate('/questions')}>Question bank</button><button className="button-primary" type="button" onClick={next} disabled={!review}>{index + 1 === questions.length ? 'Finish quiz' : 'Next question'}</button></div>
       </div>
     </div>
-  );
+  </div>;
 }
 
 export default Quiz;

@@ -1,29 +1,30 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MarketingLayout from './layouts/MarketingLayout.jsx';
 import DashboardLayout from './layouts/DashboardLayout.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
 
-import Landing from './pages/Landing.jsx';
-import Login from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
-import Dashboard from './pages/Dashboard.jsx';
-import Modules from './pages/Modules.jsx';
-import ModuleDetail from './pages/ModuleDetail.jsx';
-import Flashcards from './pages/Flashcards.jsx';
-import QuestionBank from './pages/QuestionBank.jsx';
-import Quiz from './pages/Quiz.jsx';
-import MockExam from './pages/MockExam.jsx';
-import Analytics from './pages/Analytics.jsx';
-import Pricing from './pages/Pricing.jsx';
-import Certificates from './pages/Certificates.jsx';
-import Profile from './pages/Profile.jsx';
-import Admin from './pages/Admin.jsx';
-import Settings from './pages/Settings.jsx';
-import NotFound from './pages/NotFound.jsx';
+const Landing = lazy(() => import('./pages/Landing.jsx'));
+const Login = lazy(() => import('./pages/Login.jsx'));
+const Register = lazy(() => import('./pages/Register.jsx'));
+const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
+const Modules = lazy(() => import('./pages/Modules.jsx'));
+const ModuleDetail = lazy(() => import('./pages/ModuleDetail.jsx'));
+const Flashcards = lazy(() => import('./pages/Flashcards.jsx'));
+const QuestionBank = lazy(() => import('./pages/QuestionBank.jsx'));
+const Quiz = lazy(() => import('./pages/Quiz.jsx'));
+const MockExam = lazy(() => import('./pages/MockExam.jsx'));
+const Analytics = lazy(() => import('./pages/Analytics.jsx'));
+const Pricing = lazy(() => import('./pages/Pricing.jsx'));
+const Certificates = lazy(() => import('./pages/Certificates.jsx'));
+const Profile = lazy(() => import('./pages/Profile.jsx'));
+const Admin = lazy(() => import('./pages/Admin.jsx'));
+const Settings = lazy(() => import('./pages/Settings.jsx'));
+const NotFound = lazy(() => import('./pages/NotFound.jsx'));
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import EntitlementGate from './components/EntitlementGate.jsx';
 
 function App() {
-  return (
+  return <Suspense fallback={<div className="route-status">Loading PMP Compass…</div>}>
     <Routes>
       <Route element={<MarketingLayout />}>
         <Route index element={<Landing />} />
@@ -32,24 +33,32 @@ function App() {
         <Route path="pricing" element={<Pricing />} />
       </Route>
 
-      <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="modules" element={<Modules />} />
-        <Route path="modules/:id" element={<ModuleDetail />} />
-        <Route path="flashcards" element={<Flashcards />} />
-        <Route path="questions" element={<QuestionBank />} />
-        <Route path="quiz" element={<Quiz />} />
-        <Route path="mock-exam" element={<MockExam />} />
-        <Route path="analytics" element={<Analytics />} />
-        <Route path="certificates" element={<Certificates />} />
-        <Route path="profile" element={<Profile />} />
-        <Route path="admin" element={<Admin />} />
-        <Route path="settings" element={<Settings />} />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="modules" element={<EntitlementGate feature="modules"><Modules /></EntitlementGate>} />
+          <Route path="modules/:id" element={<EntitlementGate feature="modules"><ModuleDetail /></EntitlementGate>} />
+          <Route path="flashcards" element={<EntitlementGate feature="flashcards"><Flashcards /></EntitlementGate>} />
+          <Route path="questions" element={<EntitlementGate feature="questions"><QuestionBank /></EntitlementGate>} />
+          <Route path="quiz" element={<EntitlementGate feature="practice"><Quiz /></EntitlementGate>} />
+          <Route path="mock-exam" element={<EntitlementGate feature="mockExam"><MockExam /></EntitlementGate>} />
+          <Route path="mock-exams" element={<EntitlementGate feature="mockExam"><MockExam /></EntitlementGate>} />
+          <Route path="analytics" element={<EntitlementGate feature="analytics"><Analytics /></EntitlementGate>} />
+          <Route path="certificates" element={<EntitlementGate feature="certificates"><Certificates /></EntitlementGate>} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute adminOnly />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="admin" element={<Admin />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<NotFound />} />
     </Routes>
-  );
+  </Suspense>;
 }
 
 export default App;
