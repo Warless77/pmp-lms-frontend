@@ -1,26 +1,23 @@
 import { supabase } from '../lib/supabase.js';
 
 export async function getDashboardAnalytics() {
-  const { data, error } = await supabase.rpc('pmp_get_learning_summary');
-  if (error) throw error;
-
-  const summary = data?.[0] || {
-    questions_answered: 0,
-    correct_answers: 0,
-    mock_attempts: [],
-  };
-
-  const answered = Number(summary.questions_answered || 0);
-  const correct = Number(summary.correct_answers || 0);
-  const readiness = answered > 0 ? Math.round((correct / answered) * 100) : 0;
-
+  const [{ data: summaryData, error: summaryError }, { data: progressData, error: progressError }] = await Promise.all([
+    supabase.rpc('pmp_get_learning_summary'),
+    supabase.rpc('pmp_get_cloud_learning_progress')
+  ]);
+  if (summaryError) throw summaryError;
+  if (progressError) throw progressError;
+  const summary = Array.isArray(summaryData) ? summaryData[0] : summaryData;
+  const progress = Array.isArray(progressData) ? progressData[0] : progressData;
+  const answered = Number(summary?.questions_answered || 0);
+  const correct = Number(summary?.correct_answers || 0);
   return {
-    examReadiness: readiness,
+    examReadiness: answered > 0 ? Math.round((correct / answered) * 100) : 0,
     studyStreak: 0,
-    modulesCompleted: 0,
+    modulesCompleted: Array.isArray(progress?.completed_modules) ? progress.completed_modules.length : 0,
     questionsAnswered: answered,
-    flashcardsDue: 0,
-    mockAttempts: summary.mock_attempts || [],
+    flashcardsDue: Number(progress?.flashcards_due || 0),
+    mockAttempts: summary?.mock_attempts || []
   };
 }
 
