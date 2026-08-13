@@ -11,6 +11,7 @@ function Sidebar() {
     { to: '/questions', label: 'Question Bank' },
     { to: '/quiz', label: 'Quiz' },
     { to: '/mock-exam', label: 'Mock Exams' },
+    { to: '/ai-coach', label: 'AI Coach' },
     { to: '/analytics', label: 'Analytics' },
     { to: '/certificates', label: 'Certificates' },
     { to: '/profile', label: 'Profile' },
