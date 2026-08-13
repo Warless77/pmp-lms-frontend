@@ -1,16 +1,16 @@
-/**
- * Placeholder AI coach service. These functions simulate responses from a
- * machine learning model. Replace them with real API calls once available.
- */
+import { supabase } from '../lib/supabase.js';
 
-export function getStudyRecommendation() {
-  return Promise.resolve({ message: 'Focus on Process Domain to improve your exam readiness.' });
-}
+export async function askAICoach(message, context = '') {
+  const trimmed = String(message || '').trim();
+  if (!trimmed) throw new Error('Please enter a question.');
+  if (trimmed.length > 4000) throw new Error('Question must be 4000 characters or fewer.');
 
-export function explainQuestion(questionId) {
-  return Promise.resolve({ explanation: 'This is a placeholder explanation for question ' + questionId + '.' });
-}
+  const { data, error } = await supabase.functions.invoke('ai-coach', {
+    body: { message: trimmed, context: String(context || '').slice(0, 6000) },
+  });
 
-export function generateFlashcards(topic) {
-  return Promise.resolve({ cards: [] });
+  if (error) throw new Error(error.message || 'Unable to reach AI Coach.');
+  if (data?.error) throw new Error(data.error);
+  if (!data?.answer) throw new Error('AI Coach returned an empty response.');
+  return data.answer;
 }
