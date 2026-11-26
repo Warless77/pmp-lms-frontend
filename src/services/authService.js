@@ -22,6 +22,18 @@ export async function register({ name, email, password, targetDate, plan = 'tria
   return { user: data.user, session: data.session };
 }
 
+export async function requestPasswordReset(email) {
+  const redirectTo = `${window.location.origin}/reset-password`;
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
+  if (error) throw error;
+}
+
+export async function updatePassword(password) {
+  const { data, error } = await supabase.auth.updateUser({ password });
+  if (error) throw error;
+  return data.user;
+}
+
 export async function logout() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
