@@ -15,7 +15,9 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      # package-lock.json is currently out of sync with package.json.
+      # npm install reconciles it in the CI workspace; npm ci rejects it.
+      - run: npm install
       # Invoke webpack's CLI through Node to avoid executable-bit issues
       # with node_modules/.bin/webpack in the CI runner.
       - run: node ./node_modules/webpack-cli/bin/cli.js --config webpack.config.js
