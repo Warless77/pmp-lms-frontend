@@ -15,8 +15,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm install
-      - run: npm run build
+      - run: npm ci
+      # Invoke webpack's CLI through Node to avoid executable-bit issues
+      # with node_modules/.bin/webpack in the CI runner.
+      - run: node ./node_modules/webpack-cli/bin/cli.js --config webpack.config.js
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
